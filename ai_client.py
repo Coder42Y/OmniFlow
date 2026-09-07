@@ -49,6 +49,11 @@ class AgnesStudioClient:
     def __init__(self, api_key=None, base_url=None):
         self.api_key = api_key or DEFAULT_API_KEY
         self.base_url = (base_url or DEFAULT_BASE_URL).rstrip("/")
+        import requests
+        self.session = requests.Session()
+        adapter = requests.adapters.HTTPAdapter(pool_connections=10, pool_maxsize=20, max_retries=1)
+        self.session.mount('https://', adapter)
+        self.session.mount('http://', adapter)
 
     def _request(self, endpoint, payload, timeout=30):
         url = f"{self.base_url}/{endpoint.lstrip('/')}"
@@ -56,18 +61,13 @@ class AgnesStudioClient:
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"
         }
-        data = json.dumps(payload).encode("utf-8")
-        req = urllib.request.Request(url, data=data, headers=headers, method="POST")
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                return resp.status, json.loads(resp.read().decode("utf-8"))
-        except urllib.error.HTTPError as e:
-            err_body = e.read().decode("utf-8")
+            resp = self.session.post(url, json=payload, headers=headers, timeout=timeout)
             try:
-                parsed_err = json.loads(err_body)
+                data = resp.json()
             except Exception:
-                parsed_err = {"message": err_body}
-            return e.code, parsed_err
+                data = {"message": resp.text}
+            return resp.status_code, data
         except Exception as e:
             return 500, {"error": str(e)}
 
@@ -132,7 +132,7 @@ class AgnesStudioClient:
             "Content-Type": "application/json"
         }
         try:
-            resp = requests.post(url, headers=headers, json=payload, stream=True, timeout=(10, timeout))
+            resp = self.session.post(url, headers=headers, json=payload, stream=True, timeout=(10, timeout))
             if resp.status_code != 200:
                 yield f"[API 响应错误码 {resp.status_code}]", True
                 return

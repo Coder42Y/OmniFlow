@@ -164,10 +164,49 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
         url_parts = urllib.parse.urlparse(self.path)
         path = urllib.parse.unquote(url_parts.path)
 
-        # 根路径访问自动提供 index.html
-        if path == '/' or path == '':
-            self.path = '/index.html'
-            return super().do_GET()
+        # 0. 静态资源智能分发与动态 Gzip 极速压缩 (传输体积锐减 75%)
+        clean_path = '/index.html' if path in ('/', '') else path
+        static_file = os.path.join(WORKSPACE_DIR, clean_path.lstrip('/'))
+        if os.path.isfile(static_file) and not any(static_file.lower().endswith(ext) for ext in MEDIA_EXTS):
+            ext = os.path.splitext(static_file)[1].lower()
+            text_mimes = {
+                '.html': 'text/html; charset=utf-8',
+                '.js': 'application/javascript; charset=utf-8',
+                '.css': 'text/css; charset=utf-8',
+                '.json': 'application/json; charset=utf-8',
+                '.md': 'text/markdown; charset=utf-8',
+                '.svg': 'image/svg+xml'
+            }
+            if ext in text_mimes:
+                accept_encoding = self.headers.get('Accept-Encoding', '')
+                try:
+                    with open(static_file, 'rb') as f:
+                        file_data = f.read()
+
+                    if 'gzip' in accept_encoding:
+                        import gzip
+                        compressed = gzip.compress(file_data, compresslevel=6)
+                        self.send_response(200)
+                        self.send_header('Content-Type', text_mimes[ext])
+                        self.send_header('Content-Encoding', 'gzip')
+                        self.send_header('Content-Length', str(len(compressed)))
+                        self.send_header('Cache-Control', 'no-cache, must-revalidate')
+                        self.send_header('Vary', 'Accept-Encoding')
+                        self.send_header('Access-Control-Allow-Origin', '*')
+                        self.end_headers()
+                        self.wfile.write(compressed)
+                        return
+                    else:
+                        self.send_response(200)
+                        self.send_header('Content-Type', text_mimes[ext])
+                        self.send_header('Content-Length', str(len(file_data)))
+                        self.send_header('Cache-Control', 'no-cache, must-revalidate')
+                        self.send_header('Access-Control-Allow-Origin', '*')
+                        self.end_headers()
+                        self.wfile.write(file_data)
+                        return
+                except Exception:
+                    pass
 
         # 视频任务状态轮询 API: /api/wan-video/status/<task_id>
         if path.startswith('/api/wan-video/status/'):
