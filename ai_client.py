@@ -137,12 +137,14 @@ class AgnesStudioClient:
                 yield f"[API 响应错误码 {resp.status_code}]", True
                 return
 
-            # 🌟 采用底层零缓冲实时流读取，只要上游 socket 吐出任意字节立即解析抛出，杜绝 512 字节内部积攒
+            # 🌟 采用底层零缓冲增量 UTF-8 解码，杜绝 requests 将 text/event-stream 误判为 ISO-8859-1 导致中文乱码
+            import codecs
+            utf8_decoder = codecs.getincrementaldecoder('utf-8')(errors='replace')
             buffer = ""
-            for raw_chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
+            for raw_chunk in resp.iter_content(chunk_size=None):
                 if not raw_chunk:
                     continue
-                buffer += raw_chunk
+                buffer += utf8_decoder.decode(raw_chunk)
                 while "\n" in buffer:
                     line_str, buffer = buffer.split("\n", 1)
                     line_str = line_str.strip()

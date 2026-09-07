@@ -1648,9 +1648,14 @@
                 const lines = buffer.split('\n');
                 buffer = lines.pop() || '';
 
+                let isDoneReceived = false;
                 for (const line of lines) {
                   const trimmed = line.trim();
-                  if (!trimmed || trimmed === 'data: [DONE]') continue;
+                  if (!trimmed) continue;
+                  if (trimmed === 'data: [DONE]') {
+                    isDoneReceived = true;
+                    break;
+                  }
                   if (trimmed.startsWith('data: ')) {
                     try {
                       const payload = JSON.parse(trimmed.slice(6));
@@ -1669,6 +1674,10 @@
                       console.warn('SSE chunk parse error:', err);
                     }
                   }
+                }
+                if (isDoneReceived) {
+                  try { reader.cancel(); } catch (e) {}
+                  break;
                 }
               }
 

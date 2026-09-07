@@ -1739,7 +1739,7 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
                 self.send_header('Cache-Control', 'no-cache, no-transform, no-store, must-revalidate, max-age=0')
-                self.send_header('Connection', 'keep-alive')
+                self.send_header('Connection', 'close')
                 self.send_header('X-Accel-Buffering', 'no')
                 self.send_header('Access-Control-Allow-Origin', '*')
                 self.send_header('Pragma', 'no-cache')
@@ -1771,6 +1771,7 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
 
                 self.wfile.write(b"data: [DONE]\n\n")
                 self.wfile.flush()
+                self.close_connection = True
                 return
             except (BrokenPipeError, ConnectionResetError):
                 return
