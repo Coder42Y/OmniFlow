@@ -30,7 +30,7 @@
     }
   </script>
   <style>
-    [v-cloak] { display: none; }
+    [v-cloak] { display: none !important; }
     /* Codex 极客极简滚动条 (5px 悬浮半透明微隐设计) */
     ::-webkit-scrollbar { width: 5px; height: 5px; }
     ::-webkit-scrollbar-track { background: transparent; }
@@ -220,7 +220,7 @@
     }
 
     /* ======================================================== */
-    /* 🌟 图片 (Image) 商业视觉与全屏灯箱交互排版               */
+    /* 🌟 图片 (Image) 原生自然呈现排版                          */
     /* ======================================================== */
     .chat-markdown-content figure {
       margin: 0.75rem auto;
@@ -228,20 +228,20 @@
     }
     .chat-markdown-content img {
       max-width: 100%;
-      max-height: 420px;
+      max-height: 460px;
       object-fit: contain;
-      border-radius: 0.875rem;
-      margin: 0.65rem auto;
+      border-radius: 0.75rem;
+      margin: 0.5rem auto;
       display: block;
-      box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
+      box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.08);
       border: 1px solid #e7e5e4;
-      background-color: #1c1917;
-      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
-      cursor: zoom-in;
+      background-color: #fafaf9;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      cursor: pointer;
     }
     .chat-markdown-content img:hover {
-      transform: scale(1.015);
-      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.18);
+      opacity: 0.95;
+      transform: scale(1.005);
     }
     .chat-markdown-content figcaption {
       font-size: 0.75rem;
@@ -547,8 +547,10 @@
                       </span>
                       <a :href="msg.cards.poster.image_url" target="_blank" class="text-brand-600 hover:text-brand-700 underline text-[11px]">查看原图 ↗</a>
                     </div>
-                    <div class="rounded-xl overflow-hidden border border-stone-200 bg-stone-950 max-h-72 flex items-center justify-center">
-                      <img :src="msg.cards.poster.image_url" alt="海报" @click="openImagePreview(msg.cards.poster.image_url)" class="max-h-68 w-auto object-contain rounded-lg shadow-sm cursor-zoom-in hover:opacity-95 transition active:scale-98">
+                    <div class="rounded-xl overflow-hidden border border-stone-200 bg-stone-900 max-h-72 flex items-center justify-center">
+                      <a :href="msg.cards.poster.image_url" target="_blank" rel="noopener noreferrer" title="在新窗口打开查看原图" class="block w-full text-center">
+                        <img :src="msg.cards.poster.image_url" alt="海报" class="max-h-68 w-auto mx-auto object-contain rounded-lg shadow-sm hover:opacity-90 transition">
+                      </a>
                     </div>
                     <div class="flex items-center justify-end gap-2 pt-1 flex-wrap">
                       <button @click="sendToVisual(msg.cards.poster.image_url)" class="px-3 py-1.5 bg-white hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-lg text-[11px] font-medium transition flex items-center gap-1 shadow-2xs">
@@ -1268,40 +1270,7 @@
 
     </main>
 
-    <!-- 🌟 全屏高清大图灯箱预览 (Image Lightbox Modal) -->
-    <div v-if="previewImageUrl" 
-         @click="closeImagePreview"
-         class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none transition-all duration-200">
-      <div class="relative max-w-5xl max-h-[92vh] flex flex-col items-center" @click.stop>
-        <!-- 悬浮右上角关闭按钮 -->
-        <button @click="closeImagePreview" 
-                title="关闭预览 (ESC)"
-                class="absolute -top-11 right-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center text-sm font-bold transition shadow-lg">
-          ✕
-        </button>
-        <!-- 图片容器 -->
-        <div class="rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black/40 max-h-[82vh] flex items-center justify-center">
-          <img :src="previewImageUrl" alt="全屏大图预览" class="max-h-[80vh] w-auto object-contain rounded-xl">
-        </div>
-        <!-- 底部快捷操作条 -->
-        <div class="mt-3.5 flex items-center gap-3">
-          <a :href="previewImageUrl" target="_blank" 
-             class="px-4 py-2 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-medium backdrop-blur-sm transition flex items-center gap-1.5 border border-white/20 shadow-xs">
-            <span>↗</span>
-            <span>在新窗口打开原图</span>
-          </a>
-          <a :href="previewImageUrl" download="omniflow_preview.png" 
-             class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-medium transition flex items-center gap-1.5 shadow-md">
-            <span>⬇️</span>
-            <span>保存下载图片</span>
-          </a>
-          <button @click="closeImagePreview" 
-                  class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-xl text-xs font-medium transition border border-white/10">
-            关闭 (ESC)
-          </button>
-        </div>
-      </div>
-    </div>
+
 
   </div>
 
@@ -1538,16 +1507,7 @@
           });
         };
 
-        // ================= 🌟 大图灯箱与富文本排版增强 =================
-        const previewImageUrl = ref('');
-        const openImagePreview = (url) => {
-          if (url) previewImageUrl.value = url;
-        };
-        const closeImagePreview = () => {
-          previewImageUrl.value = '';
-        };
-        window.__openImageModal = openImagePreview;
-
+        // ================= 🌟 富文本与表格排版增强 =================
         // 配置 marked 自定义 renderer
         if (window.marked) {
           const customRenderer = new marked.Renderer();
@@ -1555,12 +1515,12 @@
           customRenderer.table = function(header, body) {
             return `<div class="table-container overflow-x-auto my-3 rounded-xl border border-stone-200 shadow-2xs bg-white codex-scrollbar"><table class="w-full text-left border-collapse">${header}${body}</table></div>`;
           };
-          // 图片定制：居中、限高、支持图注并绑定点击打开大图灯箱
+          // 图片定制：原生自然呈现，支持图注与直接新窗口查阅
           customRenderer.image = function(href, title, text) {
             const cleanHref = (href || '').trim();
             const altText = text || '';
-            const titleAttr = title ? `title="${title}"` : '';
-            return `<figure class="my-3 text-center"><img src="${cleanHref}" alt="${altText}" ${titleAttr} class="cursor-zoom-in active:scale-98 transition-transform" onclick="window.__openImageModal && window.__openImageModal('${cleanHref}')" />${altText ? `<figcaption class="text-[11px] text-stone-500 mt-1.5 font-mono">${altText}</figcaption>` : ''}</figure>`;
+            const titleAttr = title ? `title="${title}"` : 'title="在新窗口查看原图"';
+            return `<figure class="my-3 text-center"><a href="${cleanHref}" target="_blank" rel="noopener noreferrer" class="inline-block hover:opacity-95 transition"><img src="${cleanHref}" alt="${altText}" ${titleAttr} class="rounded-xl shadow-xs border border-stone-200" /></a>${altText ? `<figcaption class="text-[11px] text-stone-500 mt-1.5 font-mono">${altText}</figcaption>` : ''}</figure>`;
           };
           marked.use({ renderer: customRenderer, breaks: true, gfm: true });
         }
@@ -2151,19 +2111,10 @@
 
         onMounted(() => {
           loadSessions();
-          window.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && previewImageUrl.value) {
-              closeImagePreview();
-            }
-          });
         });
 
         return {
           currentNav,
-          // 大图灯箱
-          previewImageUrl,
-          openImagePreview,
-          closeImagePreview,
           // Omni Hub (FirstPage)
           isSessionPanelOpen,
           sessions,
