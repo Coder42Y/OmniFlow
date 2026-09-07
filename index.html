@@ -531,8 +531,14 @@
                 
                 <!-- AI 回答 Markdown 富文本渲染 (支持实时流式打字与动态呼吸光标) -->
                 <div v-else class="select-text font-sans chat-markdown-content relative">
-                  <span v-html="renderMarkdown(msg.content)"></span>
-                  <span v-if="msg.streaming" class="inline-block w-1.5 h-3.5 bg-amber-500 rounded-xs animate-pulse ml-1 align-middle shadow-xs"></span>
+                  <div v-if="!msg.content && msg.streaming" class="flex items-center gap-1.5 py-1 text-stone-400 select-none">
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style="animation-delay: 0ms"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style="animation-delay: 150ms"></span>
+                    <span class="w-1.5 h-1.5 rounded-full bg-amber-500 animate-bounce" style="animation-delay: 300ms"></span>
+                    <span class="text-[11px] font-mono text-stone-500 ml-1.5">Master Agent 思考中...</span>
+                  </div>
+                  <span v-else v-html="renderMarkdown(msg.content)"></span>
+                  <span v-if="msg.content && msg.streaming" class="inline-block w-1.5 h-3.5 bg-amber-500 rounded-xs animate-pulse ml-1 align-middle shadow-xs"></span>
                 </div>
                 
                 <!-- 富媒体交互卡片集群 (如果携带 cards) -->
@@ -1613,6 +1619,28 @@
               const decoder = new TextDecoder('utf-8');
               let buffer = '';
 
+              // 🌟 自适应平滑打字机流水线：将网络 chunk 转化为如丝般顺滑的逐字流水
+              const typingQueue = [];
+              let streamEnded = false;
+
+              const typingPromise = new Promise((resolve) => {
+                const step = () => {
+                  if (typingQueue.length > 0) {
+                    // 自适应步长：积压多时提速，积压少时保持舒适人感节奏 (18ms)
+                    const count = typingQueue.length > 80 ? 5 : (typingQueue.length > 25 ? 3 : (typingQueue.length > 8 ? 2 : 1));
+                    const textChunk = typingQueue.splice(0, count).join('');
+                    assistantMsg.content += textChunk;
+                    scrollToBottom();
+                    setTimeout(step, 18);
+                  } else if (!streamEnded) {
+                    setTimeout(step, 20);
+                  } else {
+                    resolve();
+                  }
+                };
+                step();
+              });
+
               while (true) {
                 const { done, value } = await reader.read();
                 if (done) break;
@@ -1627,7 +1655,9 @@
                     try {
                       const payload = JSON.parse(trimmed.slice(6));
                       if (payload.delta) {
-                        assistantMsg.content += payload.delta;
+                        for (const ch of payload.delta) {
+                          typingQueue.push(ch);
+                        }
                       }
                       if (payload.model) {
                         assistantMsg.model = payload.model;
@@ -1635,7 +1665,6 @@
                       if (payload.cards) {
                         assistantMsg.cards = Object.assign(assistantMsg.cards || {}, payload.cards);
                       }
-                      scrollToBottom();
                     } catch (err) {
                       console.warn('SSE chunk parse error:', err);
                     }
@@ -1643,6 +1672,8 @@
                 }
               }
 
+              streamEnded = true;
+              await typingPromise;
               assistantMsg.streaming = false;
               if (currentSession.value) {
                 currentSession.value.updatedAt = Date.now();

@@ -137,22 +137,40 @@ class AgnesStudioClient:
                 yield f"[API 响应错误码 {resp.status_code}]", True
                 return
 
-            for line in resp.iter_lines():
-                if not line:
+            # 🌟 采用底层零缓冲实时流读取，只要上游 socket 吐出任意字节立即解析抛出，杜绝 512 字节内部积攒
+            buffer = ""
+            for raw_chunk in resp.iter_content(chunk_size=None, decode_unicode=True):
+                if not raw_chunk:
                     continue
-                line_str = line.decode("utf-8").strip()
-                if line_str == "data: [DONE]":
-                    break
-                if line_str.startswith("data: "):
-                    try:
-                        chunk = json.loads(line_str[6:])
-                        choices = chunk.get("choices", [])
-                        if choices:
-                            delta = choices[0].get("delta", {}).get("content", "")
-                            if delta:
-                                yield delta, False
-                    except Exception:
-                        pass
+                buffer += raw_chunk
+                while "\n" in buffer:
+                    line_str, buffer = buffer.split("\n", 1)
+                    line_str = line_str.strip()
+                    if not line_str:
+                        continue
+                    if line_str == "data: [DONE]":
+                        yield "", True
+                        return
+                    if line_str.startswith("data: "):
+                        try:
+                            chunk = json.loads(line_str[6:])
+                            choices = chunk.get("choices", [])
+                            if choices:
+                                delta = choices[0].get("delta", {}).get("content", "")
+                                if delta:
+                                    yield delta, False
+                        except Exception:
+                            pass
+            if buffer.strip().startswith("data: "):
+                try:
+                    chunk = json.loads(buffer.strip()[6:])
+                    choices = chunk.get("choices", [])
+                    if choices:
+                        delta = choices[0].get("delta", {}).get("content", "")
+                        if delta:
+                            yield delta, False
+                except Exception:
+                    pass
             yield "", True
         except Exception as e:
             yield f"[流式通信中断: {str(e)}]", True

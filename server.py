@@ -1512,8 +1512,8 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
         is_campaign_request = mode == 'campaign' or any(k in last_user_msg for k in campaign_keywords)
         is_video_request = any(k in last_user_msg for k in video_keywords) and not is_campaign_request
 
-        # 1. 专属视频任务：由 Gemini 3.8 Flash 判断决策，视频渲染一概委派给 Agnes Video Engine
-        if is_video_request:
+        # 1. 专属视频离线任务 (仅在非流式或明确离线请求时执行，防止阻塞流式打字)
+        if is_video_request and not stream_requested:
             uploads_dir = os.path.join(WORKSPACE_DIR, 'uploads')
             clips_dir = os.path.join(WORKSPACE_DIR, 'clips')
             os.makedirs(uploads_dir, exist_ok=True)
@@ -1585,8 +1585,8 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
             }).encode('utf-8'))
             return
 
-        # 2. 一键全案生成任务：Gemini 3.8 Flash 统领调度，海报与视频任务派发给 Agnes 引擎
-        if is_campaign_request:
+        # 2. 一键全案离线任务 (仅在非流式时执行，防止阻塞流式打字)
+        if is_campaign_request and not stream_requested:
             camp_res = agnes_client.generate_full_campaign(last_user_msg)
             if camp_res.get('success'):
                 campaign = camp_res['campaign']
@@ -1690,8 +1690,8 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
                 }).encode('utf-8'))
                 return
 
-        # 3. 单项生图任务处理 (派发给 Agnes Image 2.5 Flash)
-        if any(k in last_user_msg for k in image_keywords):
+        # 3. 单项生图离线任务 (仅在非流式时执行，防止阻塞流式打字)
+        if any(k in last_user_msg for k in image_keywords) and not stream_requested:
             uploads_dir = os.path.join(WORKSPACE_DIR, 'uploads')
             img_res = agnes_client.generate_image(last_user_msg, style='大牌质感', output_dir=uploads_dir)
             img_url = img_res.get('local_url') or img_res.get('remote_url') or ''
@@ -1738,11 +1738,20 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
             try:
                 self.send_response(200)
                 self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
-                self.send_header('Cache-Control', 'no-cache, no-transform')
+                self.send_header('Cache-Control', 'no-cache, no-transform, no-store, must-revalidate, max-age=0')
                 self.send_header('Connection', 'keep-alive')
                 self.send_header('X-Accel-Buffering', 'no')
                 self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Pragma', 'no-cache')
+                self.send_header('Expires', '0')
                 self.end_headers()
+
+                # 🌟 核心：立刻发送 2KB 空格注释帧，瞬间冲破 Cloudflare / Vercel 边缘反向代理的 Buffer 阈值
+                self.wfile.write(b": " + b" " * 2048 + b"\n\n")
+                # 发送 initial handshake 确认帧
+                init_msg = json.dumps({'status': 'connected', 'model': 'Gemini 3.8 Flash (Master Agent)'})
+                self.wfile.write(f"data: {init_msg}\n\n".encode('utf-8'))
+                self.wfile.flush()
 
                 master_sys = (
                     "你是电商 AI 创作工作台的【Master Agent (Gemini 3.8 Flash)】。\n"
