@@ -109,6 +109,54 @@ class AgnesStudioClient:
 
         return {"success": False, "status": 500, "error": last_error}
 
+    def chat_completion_stream(self, messages, system_prompt=None, temperature=0.7, max_tokens=8192, timeout=75):
+        """
+        流式调用 Agnes 2.5 Flash 文本大模型，实时 yield (delta_text, is_done)
+        """
+        import requests
+        formatted_messages = []
+        if system_prompt:
+            formatted_messages.append({"role": "system", "content": system_prompt})
+        formatted_messages.extend(messages)
+
+        payload = {
+            "model": "agnes-2.5-flash",
+            "messages": formatted_messages,
+            "temperature": temperature,
+            "max_tokens": max_tokens,
+            "stream": True
+        }
+        url = f"{self.base_url}/chat/completions"
+        headers = {
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json"
+        }
+        try:
+            resp = requests.post(url, headers=headers, json=payload, stream=True, timeout=(10, timeout))
+            if resp.status_code != 200:
+                yield f"[API 响应错误码 {resp.status_code}]", True
+                return
+
+            for line in resp.iter_lines():
+                if not line:
+                    continue
+                line_str = line.decode("utf-8").strip()
+                if line_str == "data: [DONE]":
+                    break
+                if line_str.startswith("data: "):
+                    try:
+                        chunk = json.loads(line_str[6:])
+                        choices = chunk.get("choices", [])
+                        if choices:
+                            delta = choices[0].get("delta", {}).get("content", "")
+                            if delta:
+                                yield delta, False
+                    except Exception:
+                        pass
+            yield "", True
+        except Exception as e:
+            yield f"[流式通信中断: {str(e)}]", True
+
     def generate_full_campaign(self, user_prompt):
         """
         FirstPage 专属全案解析：输入一句话，同时生成带货脚本、分镜海报提示词、运镜类型与花字

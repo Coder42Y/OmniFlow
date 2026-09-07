@@ -435,8 +435,11 @@
                 <!-- 用户提问普通文本展示 -->
                 <div v-if="msg.role === 'user'" class="whitespace-pre-wrap select-text font-sans">{{ msg.content }}</div>
                 
-                <!-- AI 回答 Markdown 富文本渲染 -->
-                <div v-else class="select-text font-sans chat-markdown-content" v-html="renderMarkdown(msg.content)"></div>
+                <!-- AI 回答 Markdown 富文本渲染 (支持实时流式打字与动态呼吸光标) -->
+                <div v-else class="select-text font-sans chat-markdown-content relative">
+                  <span v-html="renderMarkdown(msg.content)"></span>
+                  <span v-if="msg.streaming" class="inline-block w-1.5 h-3.5 bg-amber-500 rounded-xs animate-pulse ml-1 align-middle shadow-xs"></span>
+                </div>
                 
                 <!-- 富媒体交互卡片集群 (如果携带 cards) -->
                 <div v-if="msg.cards" class="space-y-3 pt-2 border-t border-stone-100">
@@ -1174,7 +1177,7 @@
   </div>
 
   <script>
-    const { createApp, ref, computed, nextTick, onMounted } = Vue;
+    const { createApp, ref, computed, nextTick, onMounted, reactive } = Vue;
 
     createApp({
       setup() {
@@ -1464,15 +1467,72 @@
             const history = chatMessages.value.map(m => ({ role: m.role, content: m.content }));
             const res = await fetch('/api/chat', {
               method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'text/event-stream'
+              },
               body: JSON.stringify({
                 messages: history,
                 provider: 'gemini',
-                model: 'gemini-3.8-flash'
+                model: 'gemini-3.8-flash',
+                stream: true
               })
             });
 
-            if (res.ok) {
+            const contentType = res.headers.get('content-type') || '';
+            if (res.ok && contentType.includes('text/event-stream')) {
+              // 建立 assistant 消息流式接收对象并推入列表
+              const assistantMsg = reactive({
+                role: 'assistant',
+                content: '',
+                model: 'Gemini 3.8 Flash (Master Agent)',
+                cards: null,
+                streaming: true,
+                time: timeStr
+              });
+              chatMessages.value.push(assistantMsg);
+              isAiResponding.value = false;
+
+              const reader = res.body.getReader();
+              const decoder = new TextDecoder('utf-8');
+              let buffer = '';
+
+              while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                buffer += decoder.decode(value, { stream: true });
+                const lines = buffer.split('\n');
+                buffer = lines.pop() || '';
+
+                for (const line of lines) {
+                  const trimmed = line.trim();
+                  if (!trimmed || trimmed === 'data: [DONE]') continue;
+                  if (trimmed.startsWith('data: ')) {
+                    try {
+                      const payload = JSON.parse(trimmed.slice(6));
+                      if (payload.delta) {
+                        assistantMsg.content += payload.delta;
+                      }
+                      if (payload.model) {
+                        assistantMsg.model = payload.model;
+                      }
+                      if (payload.cards) {
+                        assistantMsg.cards = Object.assign(assistantMsg.cards || {}, payload.cards);
+                      }
+                      scrollToBottom();
+                    } catch (err) {
+                      console.warn('SSE chunk parse error:', err);
+                    }
+                  }
+                }
+              }
+
+              assistantMsg.streaming = false;
+              if (currentSession.value) {
+                currentSession.value.updatedAt = Date.now();
+              }
+              saveSessions();
+            } else if (res.ok) {
               const data = await res.json();
               chatMessages.value.push({
                 role: 'assistant',

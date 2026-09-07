@@ -1460,6 +1460,7 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
             self.wfile.write(json.dumps({'success': False, 'error': '未提供消息内容'}).encode('utf-8'))
             return
 
+        stream_requested = bool(payload.get('stream')) or 'text/event-stream' in self.headers.get('Accept', '')
         last_user_msg = messages[-1].get('content', '') if messages else ''
         mode = payload.get('mode', '')
         start_time = time.time()
@@ -1513,6 +1514,27 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
                 f"- **运镜算法**：Dolly-in 电影级平滑推镜头 + 微浮动光感\n"
                 f"- **动态花字**：已自动压制主标题《{clean_title}》与利益点胶囊字幕\n"
             )
+            cards_payload = {
+                'poster': {'image_url': img_url},
+                'video': {'video_url': video_url, 'motion_type': 'dolly_in', 'title': clean_title}
+            }
+
+            if stream_requested:
+                try:
+                    self.send_response(200)
+                    self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
+                    self.send_header('Cache-Control', 'no-cache, no-transform')
+                    self.send_header('Connection', 'keep-alive')
+                    self.send_header('X-Accel-Buffering', 'no')
+                    self.send_header('Access-Control-Allow-Origin', '*')
+                    self.end_headers()
+
+                    self.wfile.write(f"data: {json.dumps({'delta': reply_text, 'model': 'Gemini 3.8 Flash ➔ Agnes Video Engine', 'cards': cards_payload, 'done': True})}\n\n".encode('utf-8'))
+                    self.wfile.write(b"data: [DONE]\n\n")
+                    self.wfile.flush()
+                    return
+                except (BrokenPipeError, ConnectionResetError):
+                    return
 
             self._set_json_headers(200)
             self.wfile.write(json.dumps({
@@ -1520,10 +1542,7 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
                 'reply': reply_text,
                 'model': 'Gemini 3.8 Flash ➔ Agnes Video Engine',
                 'latency': latency,
-                'cards': {
-                    'poster': {'image_url': img_url},
-                    'video': {'video_url': video_url, 'motion_type': 'dolly_in', 'title': clean_title}
-                }
+                'cards': cards_payload
             }).encode('utf-8'))
             return
 
@@ -1598,6 +1617,29 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
 
                 reply_text = "\n".join(reply_lines)
                 latency = int((time.time() - start_time) * 1000)
+                cards_payload = {
+                    'script': script_info,
+                    'poster': {'image_url': img_url, 'style': poster_info.get('style')},
+                    'video': {'video_url': video_url, 'motion_type': motion_info.get('type')},
+                    'risk_words': risk_words
+                }
+
+                if stream_requested:
+                    try:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
+                        self.send_header('Cache-Control', 'no-cache, no-transform')
+                        self.send_header('Connection', 'keep-alive')
+                        self.send_header('X-Accel-Buffering', 'no')
+                        self.send_header('Access-Control-Allow-Origin', '*')
+                        self.end_headers()
+
+                        self.wfile.write(f"data: {json.dumps({'delta': reply_text, 'model': 'Gemini 3.8 Flash (Master Agent · Multi-Agent)', 'cards': cards_payload, 'done': True})}\n\n".encode('utf-8'))
+                        self.wfile.write(b"data: [DONE]\n\n")
+                        self.wfile.flush()
+                        return
+                    except (BrokenPipeError, ConnectionResetError):
+                        return
 
                 self._set_json_headers(200)
                 self.wfile.write(json.dumps({
@@ -1605,12 +1647,7 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
                     'reply': reply_text,
                     'model': 'Gemini 3.8 Flash (Master Agent · Multi-Agent)',
                     'latency': latency,
-                    'cards': {
-                        'script': script_info,
-                        'poster': {'image_url': img_url, 'style': poster_info.get('style')},
-                        'video': {'video_url': video_url, 'motion_type': motion_info.get('type')},
-                        'risk_words': risk_words
-                    }
+                    'cards': cards_payload
                 }).encode('utf-8'))
                 return
 
@@ -1627,6 +1664,25 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
                     f"![商业海报]({img_url})\n\n"
                     f"您可直接在【视觉海报工作区】微调 5 层摄影参数，或一键将其流转至【动态视频工作区】制作 9:16 运镜短视频！"
                 )
+                cards_payload = {'poster': {'image_url': img_url}}
+
+                if stream_requested:
+                    try:
+                        self.send_response(200)
+                        self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
+                        self.send_header('Cache-Control', 'no-cache, no-transform')
+                        self.send_header('Connection', 'keep-alive')
+                        self.send_header('X-Accel-Buffering', 'no')
+                        self.send_header('Access-Control-Allow-Origin', '*')
+                        self.end_headers()
+
+                        self.wfile.write(f"data: {json.dumps({'delta': reply_text, 'model': 'Gemini 3.8 Flash ➔ Agnes Image 2.5 Flash', 'image_url': img_url, 'cards': cards_payload, 'done': True})}\n\n".encode('utf-8'))
+                        self.wfile.write(b"data: [DONE]\n\n")
+                        self.wfile.flush()
+                        return
+                    except (BrokenPipeError, ConnectionResetError):
+                        return
+
                 self._set_json_headers(200)
                 self.wfile.write(json.dumps({
                     'success': True,
@@ -1634,11 +1690,53 @@ class StudioApiHandler(SimpleHTTPRequestHandler):
                     'model': 'Gemini 3.8 Flash ➔ Agnes Image 2.5 Flash',
                     'image_url': img_url,
                     'latency': latency,
-                    'cards': {'poster': {'image_url': img_url}}
+                    'cards': cards_payload
                 }).encode('utf-8'))
                 return
 
-        # 4. 常规对话模式：由 Gemini 3.8 Flash (Master Agent) 深度作答 (75s 充足长文本时间)
+        # 4. 常规对话模式：由 Gemini 3.8 Flash (Master Agent) 深度作答
+        if stream_requested:
+            try:
+                self.send_response(200)
+                self.send_header('Content-Type', 'text/event-stream; charset=utf-8')
+                self.send_header('Cache-Control', 'no-cache, no-transform')
+                self.send_header('Connection', 'keep-alive')
+                self.send_header('X-Accel-Buffering', 'no')
+                self.send_header('Access-Control-Allow-Origin', '*')
+                self.end_headers()
+
+                master_sys = (
+                    "你是电商 AI 创作工作台的【Master Agent (Gemini 3.8 Flash)】。\n"
+                    "你作为多智能体系统的总控大脑 (Multi-Agent Orchestrator)，调度如下专职子 Agent 协同完成新媒体带货资产交付：\n"
+                    "1. 子 Agent [Agnes Video Engine]：专职负责 9:16 竖屏运镜短视频渲染、电影级 Dolly-in 镜头与动态花字合成；\n"
+                    "2. 子 Agent [Agnes Image 2.5 Flash]：专职负责 8K 商业摄影棚高定海报构图；\n"
+                    "3. 子 Agent [Agnes Compliance Engine]：专职负责新广告法极限违规词排查；\n"
+                    "4. 核心规则：生成动态短视频的任务一概交给 Agnes Video Engine 专职处理。\n"
+                    "回答风格：专业干练、高转化率导向、逻辑清晰、善用重点加粗与列表。"
+                )
+
+                for delta, is_done in agnes_client.chat_completion_stream(messages, system_prompt=master_sys, max_tokens=8192, timeout=75):
+                    if delta:
+                        chunk_str = json.dumps({'delta': delta, 'model': 'Gemini 3.8 Flash (Master Agent)'})
+                        self.wfile.write(f"data: {chunk_str}\n\n".encode('utf-8'))
+                        self.wfile.flush()
+
+                self.wfile.write(b"data: [DONE]\n\n")
+                self.wfile.flush()
+                return
+            except (BrokenPipeError, ConnectionResetError):
+                return
+            except Exception as e:
+                try:
+                    err_str = json.dumps({'delta': f"\n\n[流式通信异常: {str(e)}]", 'model': 'Gemini 3.8 Flash'})
+                    self.wfile.write(f"data: {err_str}\n\n".encode('utf-8'))
+                    self.wfile.write(b"data: [DONE]\n\n")
+                    self.wfile.flush()
+                except Exception:
+                    pass
+                return
+
+        # 非流式原有兼容逻辑
         ok, reply, engine_model = self._call_gemini_master_agent(messages, timeout=75)
         latency = int((time.time() - start_time) * 1000)
         try:
