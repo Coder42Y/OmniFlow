@@ -1,0 +1,27 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "https://careers-technology-mon-vid.trycloudflare.com/api/$1"
+    },
+    {
+      "src": "/uploads/(.*)",
+      "dest": "https://careers-technology-mon-vid.trycloudflare.com/uploads/$1"
+    },
+    {
+      "src": "/clips/(.*)",
+      "dest": "https://careers-technology-mon-vid.trycloudflare.com/clips/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
