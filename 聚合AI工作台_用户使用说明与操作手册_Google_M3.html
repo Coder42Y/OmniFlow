@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniFlow · 全模态协同工作台用户手册与实战指南</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts: Inter & Noto Sans SC -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans SC', system-ui, -apple-system, sans-serif;
+      background-color: #fcf8f6;
+      color: #1e1b19;
+    }
+    .m3-surface {
+      background: #ffffff;
+      border: 1px solid #e8e1dd;
+      border-radius: 1.25rem;
+    }
+    .m3-tonal-surface {
+      background: #f4edea;
+      border: 1px solid #e5dbd6;
+    }
+    .m3-badge {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-weight: 600;
+    }
+    .code-chip {
+      background: #f0e7e3;
+      color: #9c411c;
+      font-family: monospace;
+      padding: 0.15rem 0.4rem;
+      border-radius: 0.375rem;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 顶部沉浸式导航栏 -->
+  <header class="sticky top-0 z-50 bg-white/85 backdrop-blur-md border-b border-stone-200">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-700 via-amber-600 to-rose-500 flex items-center justify-center text-white font-serif font-black italic text-2xl shadow-sm select-none">
+          𝓥
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-sm sm:text-base font-bold text-stone-900 tracking-tight">OmniFlow · 全模态协同工作台</h1>
+            <span class="text-[9px] bg-amber-100 text-amber-900 border border-amber-300 px-1.5 py-0.5 rounded font-mono font-bold">v3.1</span>
+          </div>
+          <p class="text-[11px] text-stone-500">Omni Hub 对话总控 + 三大工作区 + 会话历史与 Codex 极客滚动条</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2.5">
+        <a href="/" class="px-3.5 py-1.5 bg-stone-900 hover:bg-stone-800 text-white rounded-xl text-xs font-medium transition shadow-xs flex items-center gap-1">
+          <span>🚀</span>
+          <span>进入工作台</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主体内容 -->
+  <main class="flex-1 max-w-5xl mx-auto w-full px-4 sm:px-6 py-8 space-y-10">
+
+    <!-- 欢迎与核心定位 -->
+    <section class="m3-surface p-6 sm:p-8 shadow-sm space-y-4">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="m3-badge bg-amber-100 text-amber-900">OmniFlow 架构升级</span>
+        <span class="m3-badge bg-stone-900 text-white">𝓥 极速流线</span>
+        <span class="m3-badge bg-emerald-100 text-emerald-900">Gemini 3.8 Flash 主控</span>
+        <span class="m3-badge bg-purple-100 text-purple-900">Agnes 专职短视频引擎</span>
+      </div>
+      <h2 class="text-2xl font-bold text-stone-900">欢迎使用 OmniFlow 全模态协同工作台</h2>
+      <p class="text-stone-600 text-sm leading-relaxed">
+        <b>OmniFlow</b> 专为新媒体带货、短视频电商、直播切片及商品运营团队打造。系统以 <b>Omni Hub (FirstPage) 协同调度中心</b> 为多智能体对话枢纽，底层深度打通 <b>视觉海报工作区</b>、<b>动态视频工作区</b> 与 <b>文案脚本工作区</b>，实现“从商品卖点提取 ➔ 爆款口播 ➔ 高清海报 ➔ 电影级运镜短视频”的端到端秒级交付闭环！
+      </p>
+    </section>
+
+    <!-- 系统全景架构与四大功能区矩阵 -->
+    <section class="space-y-4">
+      <div class="flex items-center justify-between">
+        <h3 class="text-lg font-bold text-stone-900 flex items-center gap-2">
+          <span>🏗️</span>
+          <span>系统核心架构与四大功能区矩阵</span>
+        </h3>
+        <span class="text-xs text-stone-500">统一数据结构 · 跨工作区无缝流转</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <!-- 卡片 1: Omni Hub -->
+        <div class="m3-surface p-5 space-y-3 hover:shadow-md transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">💬</span>
+              <h4 class="font-bold text-stone-900 text-sm">Omni Hub 协同调度中心</h4>
+            </div>
+            <span class="text-[11px] font-mono text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">Powered by Muti-Agent</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            由 <b>Gemini 3.8 Flash 担任 Master Agent</b> 总控调度大脑，底座搭载 1M 超长 Context Window 动态指示圆环。依据用户自然语言诉求智能决策：<b>生成视频的任务一概指派专职子 Agent [Agnes Video Engine] 渲染</b>。内嵌<b>多会话历史抽屉（Session Drawer）</b>，支持“+ 新增对话”、时间轴分组管理、本地持久化与 Codex 极客极细微隐滚动条，会话随心切换！
+          </p>
+        </div>
+
+        <!-- 卡片 2: 视觉海报工作区 -->
+        <div class="m3-surface p-5 space-y-3 hover:shadow-md transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🎨</span>
+              <h4 class="font-bold text-stone-900 text-sm">视觉海报工作区 (Visual Workspace)</h4>
+            </div>
+            <span class="text-[11px] font-mono text-purple-700 bg-purple-50 px-2 py-0.5 rounded-md">Agnes 2.5 + 5层摄影装配</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            参考 GitHub 高星商业摄影标准，打造 <b>6 大电商爆款行业预设</b>（水凝轻奢/暗夜曜石/极客几何/璀璨星芒/晨露鲜萃/暖阳日杂），提供展台底座、影棚光效、镜头机位、画幅比例（1:1、3:4、9:16、16:9）等 5 层参数化装配体系与实时 Compiled Prompt 编译，生成的商拍大片可一键流转至视频工作区。
+          </p>
+        </div>
+
+        <!-- 卡片 3: 动态视频工作区 -->
+        <div class="m3-surface p-5 space-y-3 hover:shadow-md transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">🎬</span>
+              <h4 class="font-bold text-stone-900 text-sm">动态视频工作区 (Motion Workspace)</h4>
+            </div>
+            <span class="text-[11px] font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded-md">本地平滑运镜引擎</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            无需漫长等待云端排队！本地运镜引擎 0.8 秒内即可将海报转化为 9:16 (720x1280) H.264 竖屏短片。支持缓入推进 (Dolly-in)、左右横移、微动悬浮等平滑运镜，并自动叠加思源黑体卖点大花字、副标题与标签胶囊。
+          </p>
+        </div>
+
+        <!-- 卡片 4: 文案脚本工作区 -->
+        <div class="m3-surface p-5 space-y-3 hover:shadow-md transition">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="text-xl">📝</span>
+              <h4 class="font-bold text-stone-900 text-sm">文案脚本工作区 (Script Workspace)</h4>
+            </div>
+            <span class="text-[11px] font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md">FABE + 广告法风控</span>
+          </div>
+          <p class="text-xs text-stone-600 leading-relaxed">
+            输入商品名与核心卖点，基于 FABE 销售法则深度拆解特征(F)、优势(A)、利益(B)与公信力证据(E)，毫秒级比对广告法极限词库拦截违规绝对化用语，并自动提炼出海报分镜提示词送入海报工作区。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 两种经典工作流实战演练 -->
+    <section class="m3-surface p-6 sm:p-8 space-y-6">
+      <h3 class="text-lg font-bold text-stone-900 flex items-center gap-2">
+        <span>⚡</span>
+        <span>两种经典创作工作流（5分钟上手）</span>
+      </h3>
+
+      <!-- 模式 A -->
+      <div class="p-5 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-brand-600 text-white flex items-center justify-center text-xs font-bold">A</span>
+          <h4 class="font-bold text-stone-900 text-sm">极速全案模式：FirstPage 一句话端到端生成</h4>
+        </div>
+        <p class="text-xs text-stone-600 leading-relaxed">
+          适合：需要快速出片、批量起号或全套宣发方案的创作者。
+        </p>
+        <ol class="text-xs text-stone-700 space-y-2 list-decimal list-inside leading-relaxed pl-1">
+          <li>打开工作台默认首页 <b>FirstPage</b>；</li>
+          <li>在底部输入框输入需求，例如：<code class="code-chip">帮我生成一套黑曜石男士淡雅冷香的带货全案，主打24小时持久木质香与高冷商务气场，包含口播、海报与5秒运镜短视频</code>；</li>
+          <li>约 10~15 秒后，FirstPage 将在同一条回复中展示：<b>黄金3秒口播+FABE文案</b>、<b>商业高清海报成品</b>与<b>带花字原生播放的运镜视频</b>；</li>
+          <li>点击卡片底部的【送入海报工作区换风格】或【送入视频工作区微调运镜】，即可无缝跳转至独立工作区继续精修。</li>
+        </ol>
+      </div>
+
+      <!-- 模式 B -->
+      <div class="p-5 bg-stone-50 rounded-2xl border border-stone-200 space-y-3">
+        <div class="flex items-center gap-2">
+          <span class="w-6 h-6 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs font-bold">B</span>
+          <h4 class="font-bold text-stone-900 text-sm">专业工匠模式：三大工作区分步流水线精修</h4>
+        </div>
+        <p class="text-xs text-stone-600 leading-relaxed">
+          适合：对细节要求极高、需要打磨台词与严格把控广告法合规的专业电商编导团队。
+        </p>
+        <ol class="text-xs text-stone-700 space-y-2 list-decimal list-inside leading-relaxed pl-1">
+          <li><b>步骤 1 (文案)</b>：进入【文案脚本工作区】，点击【快速填入：男香冷调/抗老眼霜/保温杯】，点击【单检卖点广告法合规】排查敏感词，点击【生成全套口播与 FABE】；</li>
+          <li><b>步骤 2 (流转)</b>：在文案工作区右下方点击【携带此分镜送入视觉海报工作区 ➔】，系统自动切换并填入分镜提示词；</li>
+          <li><b>步骤 3 (海报)</b>：选择“大牌质感”风格，点击【开始渲染商业海报】，等待 8 秒获得商业高清主图；</li>
+          <li><b>步骤 4 (短视频)</b>：在海报预览右下方点击【一键送去生成运镜短视频 ➔】，系统将海报载入【动态视频工作区】，选择运镜轨迹（如：缓入推进 Dolly-in），输入花字卖点后点击【开始合成运镜短视频】；</li>
+          <li><b>步骤 5 (交付)</b>：0.9 秒后即可在播放器中试看视频，点击【下载短视频成品 (MP4)】交付发布！</li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- 常见问题与技术支持 -->
+    <section class="m3-surface p-6 sm:p-8 space-y-4">
+      <h3 class="text-lg font-bold text-stone-900 flex items-center gap-2">
+        <span>❓</span>
+        <span>常见问题与排错手册 (FAQ)</span>
+      </h3>
+      <div class="space-y-3 text-xs text-stone-700 leading-relaxed">
+        <div class="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+          <div class="font-bold text-stone-800">Q1: 生成短视频提示“服务端未检测到 FFmpeg”怎么办？</div>
+          <p class="text-stone-500">A1: 动态视频工作区依赖系统底层 FFmpeg 编解码库。当前服务器环境已预装并经 ffprobe 自动化实测通过。如需在其他环境部署，只需执行 <code class="code-chip">sudo apt-get install -y ffmpeg</code> 即可秒级就绪。</p>
+        </div>
+        <div class="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+          <div class="font-bold text-stone-800">Q2: 广告法排查都覆盖哪些违规词？</div>
+          <p class="text-stone-500">A2: 系统内置最新《新广告法》极限用语规则库，严格覆盖：绝对化最高级（全网第一、顶级、极品等）、绝对安全/功效承诺（神效、100%有效、永不复发等）、权威机构背书类（国家级、特供等），并提供高转化的安全话术替换建议。</p>
+        </div>
+        <div class="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-1">
+          <div class="font-bold text-stone-800">Q3: 是否支持使用自己的商品白底实拍图来做运镜短视频？</div>
+          <p class="text-stone-500">A3: 完全支持！在【动态视频工作区】左侧底图输入框右边，直接点击【📤 上传底图】按钮，选择电脑中的商品实拍图或抠图白底图，即可直接合成带电影级运镜与花字包装的 9:16 短视频。</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="border-t border-stone-200 bg-white py-6 text-center text-xs text-stone-400">
+    <p>电商 AI 创作工作台 (AIPannel) · Agnes AI 核心 & 本地运镜引擎驱动</p>
+    <p class="mt-1 font-mono">Build v3.0.0 (Production Verified)</p>
+  </footer>
+
+</body>
+</html>

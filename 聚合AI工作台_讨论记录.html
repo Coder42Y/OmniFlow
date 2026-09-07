@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>聚合AI工作台 - 讨论记录</title>
+<style>
+  :root {
+    --bg: #faf9f6;
+    --card-bg: #ffffff;
+    --text: #2b2926;
+    --muted: #6b6862;
+    --accent: #b45f3f;
+    --accent-soft: #f0e4dc;
+    --user-bg: #eef0ec;
+    --border: #e8e5df;
+    --code-bg: #f4f1ec;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.75;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 48px 24px 80px; }
+  header.doc-header {
+    text-align: center;
+    margin-bottom: 48px;
+    padding-bottom: 28px;
+    border-bottom: 2px solid var(--accent-soft);
+  }
+  header.doc-header h1 {
+    font-size: 26px;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  header.doc-header p {
+    color: var(--muted);
+    font-size: 14px;
+    margin: 0;
+  }
+  .turn { margin-bottom: 32px; }
+  .bubble {
+    border-radius: 14px;
+    padding: 18px 22px;
+  }
+  .user .bubble {
+    background: var(--user-bg);
+    border: 1px solid var(--border);
+  }
+  .assistant .bubble {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .role-tag {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 8px;
+    display: block;
+  }
+  .assistant .role-tag { color: var(--muted); }
+  h2.section-title {
+    font-size: 18px;
+    margin: 28px 0 12px;
+    color: var(--accent);
+  }
+  h3 {
+    font-size: 16px;
+    margin: 20px 0 8px;
+  }
+  ul, ol { padding-left: 22px; margin: 8px 0; }
+  li { margin-bottom: 6px; }
+  code {
+    background: var(--code-bg);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.9em;
+    font-family: "SF Mono", Consolas, monospace;
+  }
+  pre {
+    background: var(--code-bg);
+    padding: 14px 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  pre code { background: none; padding: 0; }
+  .diagram-box {
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin: 14px 0;
+    background: #fcfbf9;
+  }
+  .diagram-title {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .flow-step {
+    background: var(--accent-soft);
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin: 6px auto;
+    max-width: 420px;
+    text-align: center;
+    font-size: 14px;
+  }
+  .flow-step .fs-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .flow-arrow { text-align: center; color: var(--muted); font-size: 14px; margin: 2px 0; }
+  .flow-branch { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin: 6px 0; }
+  .flow-branch .flow-step { flex: 1; min-width: 150px; margin: 0; }
+  footer {
+    margin-top: 48px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  @media print {
+    body { background: white; }
+    .bubble { box-shadow: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="doc-header">
+    <h1>聚合AI工作台设计讨论</h1>
+    <p>Video Making & 新媒体运营 · AI Workbench 技术方案 · 导出于 2026年9月5日</p>
+  </header>
+
+  <div class="turn user">
+    <div class="bubble">
+      <span class="role-tag">User</span>
+      我需要帮朋友设计一个聚合AI工作台,mainly focus on Video making 和新媒体运营。技术上的功能点主要是：<br>
+      1、语音转文字，帮主播做角色画像、赛道分析、直播中口播的卡点错误分析，需要录制全程直播然后转写<br>
+      2、简单的文生图、文生视频需求，用户完全外行 to prompt engineering，需要先搭一个workflow
+    </div>
+  </div>
+
+  <div class="turn assistant">
+    <div class="bubble">
+      <span class="role-tag">Claude</span>
+      <p>两个方向是完全不同的技术栈,但可以共享同一个"数据层"(主播/项目资料库)。</p>
+
+      <h3>模块一：直播分析(语音转文字 → 画像/诊断)</h3>
+      <ul>
+        <li><b>录制环节</b>：优先用OBS本地录制文件，质量最稳定；抓平台直播需注意合规性</li>
+        <li><b>ASR选型</b>：中文直播场景建议用阿里云/腾讯云/讯飞等做过电商直播优化的模型，效果优于Whisper</li>
+        <li>长音频需分段+流式转写，并做说话人分离(diarization)区分主播与场控/嘉宾</li>
+        <li><b>分析层</b>：角色画像（语言风格/口头禅/卖点话术）、赛道分析（对比同赛道话术/选品）、口播卡点分析（结合ASR时间戳做时间轴标注，精确到分秒）</li>
+      </ul>
+
+      <h3>模块二：文生图/文生视频（隐藏prompt engineering）</h3>
+      <ol>
+        <li>意图收集：用选择卡片代替自由输入（风格/品类/场景）</li>
+        <li>表单 → prompt生成器：LLM把选项拼装/润色成真正的prompt</li>
+        <li>参考图驱动：支持image-to-image</li>
+        <li>结果迭代按钮："更简约""换背景"等一键操作，而非重写prompt</li>
+        <li>图生视频：图片定稿后再接图生视频模型，成功率比直接文生视频更高</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="turn user">
+    <div class="bubble">
+      <span class="role-tag">User</span>
+      尽量用免费模型
+    </div>
+  </div>
+
+  <div class="turn assistant">
+    <div class="bubble">
+      <span class="role-tag">Claude</span>
+      <p>核心思路：<b>开源模型本地部署 + 少数有免费额度的国产API补充</b></p>
+      <h3>ASR（免费开源）</h3>
+      <ul>
+        <li><b>FunASR</b>（阿里达摩院开源）— 中文直播场景首选，自带标点恢复+说话人分离</li>
+        <li>备选 <b>Whisper</b> large-v3 做交叉验证</li>
+        <li>部署：消费级GPU或魔搭社区(ModelScope)免费在线demo</li>
+      </ul>
+      <h3>分析层LLM（免费/低成本）</h3>
+      <ul>
+        <li><b>DeepSeek-V3/R1</b> — 价格极低，中文分析能力强，做主力</li>
+        <li><b>通义千问 Qwen2.5</b> — 开源可本地部署</li>
+        <li><b>智谱 GLM-4-Flash</b> — 官方长期免费，适合量大但简单的任务</li>
+      </ul>
+      <h3>文生图/文生视频（开源免费）</h3>
+      <ul>
+        <li><b>FLUX.1 [schnell]</b> — 开源免费，速度快</li>
+        <li><b>Stable Diffusion XL/SD3.5</b> — 生态成熟，适合精细控制</li>
+        <li><b>Wan2.1</b>（通义万相开源版）— 中文场景优化好，支持图生视频</li>
+        <li><b>CogVideoX</b>（智谱开源）— 轻量备选</li>
+      </ul>
+      <p style="color:var(--muted); font-size:14px;">提醒：开源文生视频质量目前仍不如可灵/即梦等商用闭源模型，MVP阶段验证workflow足够，正式交付可能需要"开源跑量+商用精修"混合方案。</p>
+    </div>
+  </div>
+
+  <div class="turn user">
+    <div class="bubble">
+      <span class="role-tag">User</span>
+      你可以websearch一下最新的模型情况和类似案例
+    </div>
+  </div>
+
+  <div class="turn assistant">
+    <div class="bubble">
+      <span class="role-tag">Claude</span>
+      <h3>市场验证</h3>
+      <ul>
+        <li>蝉妈妈已推出"蝉妈妈AI"，集成DeepSeek/豆包Seed，提供AI运营分析、图片设计、智能剪辑、文案生成；孵化"蝉镜"视频创作平台，基于5000万条爆款视频构建"黄金3秒开头""转化钩子文案"等算法模型</li>
+        <li>某直播复盘AI案例：头部母婴直播企业主播培养周期从3个月压缩到21天，GPM提升22%，单场复盘时间缩短至45分钟内</li>
+        <li><b>结论</b>：需求真实，但巨头已布局，差异化机会在于服务中小主播/新人主播的轻量、便宜、数据自控方案</li>
+      </ul>
+      <h3>ASR最新情况</h3>
+      <ul>
+        <li>FunASR已集成 <b>Fun-ASR-Nano</b>（支持7种方言/26种口音）、<b>SenseVoice</b></li>
+        <li><b>FunClip</b>：从转写文本直接定位并剪辑视频片段，对"卡点定位"功能直接有用</li>
+      </ul>
+      <h3>文生图/文生视频最新情况</h3>
+      <ul>
+        <li>阿里开源 <b>Z-Image</b>：中英文文字渲染出色，适合电商素材的中文排版需求</li>
+        <li>通义万相 <b>2.6/2.7</b>：支持视频参考生成、角色扮演、分镜控制，单次时长可达15秒</li>
+        <li><b>万相2.5</b>：原生多模态，支持生成人声/音效并与画面口型匹配</li>
+        <li>开源 <b>Wan2.2</b>：5B小尺寸版本仅需22G显存，几分钟生成5秒720P视频，完全免费本地部署</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="turn user">
+    <div class="bubble">
+      <span class="role-tag">User</span>
+      No Cantonese scene, we mainly focus on Mandarin and Chinese mainland users
+    </div>
+  </div>
+
+  <div class="turn assistant">
+    <div class="bubble">
+      <span class="role-tag">Claude</span>
+      <ul>
+        <li>ASR方案简化为 <b>FunASR + Fun-ASR-Nano</b>，砍掉方言分离和Whisper交叉验证</li>
+        <li><b>FunClip</b>保留，做转写文本→视频片段定位剪辑</li>
+      </ul>
+      <h3>大陆部署需考虑的现实因素</h3>
+      <ol>
+        <li><b>合规与备案</b>：数据境内存储、ICP备案、生成式AI服务算法备案</li>
+        <li><b>模型API全部切换国内可直连</b>：DeepSeek、通义千问、智谱GLM、阿里云百炼</li>
+        <li><b>竞品对标回归国内</b>：参考蝉妈妈/飞瓜的功能颗粒度（"黄金3秒开头"等）</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="turn user">
+    <div class="bubble">
+      <span class="role-tag">User</span>
+      嗯我觉得先写好这个工作流，需要用Coze之类的吗
+    </div>
+  </div>
+
+  <div class="turn assistant">
+    <div class="bubble">
+      <span class="role-tag">Claude</span>
+      <p><b>Coze可以用，但建议分阶段用。</b></p>
+      <ul>
+        <li>Coze适合快速搭建workflow demo验证逻辑，无代码、可视化，几天出demo</li>
+        <li>但更适合"验证逻辑"而非"最终产品"——不适合自定义品牌/用户体系/计费</li>
+        <li>Coze内置ASR是豆包自研模型，不是FunASR，长音频处理能力需实测</li>
+        <li>开源替代：<b>Dify</b>（可自部署，接自定义API）或字节开源的 <b>Coze Studio</b></li>
+      </ul>
+      <p><b>建议路径</b>：Coze/Dify搭demo → 真人测试验证 → 有效后迁移核心逻辑到自建后端+前端</p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Workflow A：直播分析</div>
+        <div class="flow-step">音频录制/上传<div class="fs-sub">OBS本地文件或平台上传</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">FunASR 转写<div class="fs-sub">VAD分段 + 标点恢复 + 说话人分离</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">带时间戳文本存储</div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-branch">
+          <div class="flow-step">角色画像<div class="fs-sub">语言风格/口头禅/人设标签</div></div>
+          <div class="flow-step">赛道分析<div class="fs-sub">对比同赛道话术/选品</div></div>
+          <div class="flow-step">卡点/错误定位<div class="fs-sub">FunClip定位到具体分秒</div></div>
+        </div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">汇总报告输出<div class="fs-sub">结构化展示给主播/运营</div></div>
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Workflow B：文生图/文生视频</div>
+        <div class="flow-step">意图表单<div class="fs-sub">风格卡片/场景选择/参考图上传</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">Prompt生成器<div class="fs-sub">LLM把表单选项拼装成结构化prompt</div></div>
+        <div class="flow-arrow">↓（一键迭代可回到此步）</div>
+        <div class="flow-step">文生图<div class="fs-sub">Z-Image（中文文字）/ FLUX 路由</div></div>
+        <div class="flow-arrow">↓</div>
+        <div class="flow-step">图生视频<div class="fs-sub">定稿图 + Wan2.2/2.6 输出短视频</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="turn user">
+    <div class="bubble">
+      <span class="role-tag">User</span>
+      图生视频这一步Wan模型具体怎么调用
+    </div>
+  </div>
+
+  <div class="turn assistant">
+    <div class="bubble">
+      <span class="role-tag">Claude</span>
+      <p>阿里云百炼(DashScope)图生视频是<b>异步任务</b>：提交任务拿 <code>task_id</code>，轮询状态，完成后取视频URL。</p>
+
+      <h3>第一步：提交任务</h3>
+      <pre><code>curl -X POST 'https://dashscope.aliyuncs.com/api/v1/services/aigc/video-generation/video-synthesis' \
+  --header 'X-DashScope-Async: enable' \
+  --header "Authorization: Bearer $DASHSCOPE_API_KEY" \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "model": "wanx2.1-i2v-turbo",
+    "input": {
+      "prompt": "镜头缓慢推进，产品在旋转展示",
+      "img_url": "https://你的图片公网地址.jpg"
+    },
+    "parameters": {
+      "resolution": "720P",
+      "duration": 5
+    }
+  }'</code></pre>
+
+      <h3>第二步：轮询任务状态</h3>
+      <pre><code>curl -X GET "https://dashscope.aliyuncs.com/api/v1/tasks/{task_id}" \
+  --header "Authorization: Bearer $DASHSCOPE_API_KEY"</code></pre>
+
+      <h3>实操要点</h3>
+      <ul>
+        <li>图片必须是<b>公网可访问URL</b>，不能传本地文件/base64</li>
+        <li><b>model选择</b>：<code>wanx2.1-i2v-turbo</code>/<code>plus</code>做标准图生视频；<code>wan2.2-s2v</code>可实现图+音频直接生成对口型数字人视频</li>
+        <li>后端设计成"提交后台任务+轮询/webhook"，前端给进度提示，轮询间隔3-5秒</li>
+        <li>Coze里可用"插件"节点配置HTTP请求封装这套逻辑</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    此文件由 Claude 根据对话内容整理导出 · 仅供内部讨论参考
+  </footer>
+
+</div>
+</body>
+</html>

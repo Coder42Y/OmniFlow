@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniFlow - 全模态协同创作工作台</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Vue 3 CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <!-- Marked.js 用于精准解析 Markdown 标记 -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#fcf8f5',
+              100: '#f8eee8',
+              200: '#f1ddd3',
+              500: '#b45f3f',
+              600: '#9d4f32',
+              700: '#833f26',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    [v-cloak] { display: none; }
+    /* Codex 极客极简滚动条 (5px 悬浮半透明微隐设计) */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.13);
+      border-radius: 9999px;
+      transition: background-color 0.2s ease, width 0.2s ease;
+    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(0, 0, 0, 0.38); }
+    
+    /* Codex 深色面板极客滚动条 */
+    .codex-dark-scrollbar::-webkit-scrollbar-thumb,
+    aside::-webkit-scrollbar-thumb,
+    pre::-webkit-scrollbar-thumb,
+    .bg-stone-900::-webkit-scrollbar-thumb,
+    .bg-stone-950::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.16);
+    }
+    .codex-dark-scrollbar::-webkit-scrollbar-thumb:hover,
+    aside::-webkit-scrollbar-thumb:hover,
+    pre::-webkit-scrollbar-thumb:hover,
+    .bg-stone-900::-webkit-scrollbar-thumb:hover,
+    .bg-stone-950::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.45);
+    }
+
+    /* 标准 Firefox 滚动条适配 */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(0, 0, 0, 0.15) transparent;
+    }
+    aside, pre, .bg-stone-900, .bg-stone-950 {
+      scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+    }
+
+    .chat-bubble-ai {
+      background-color: #ffffff;
+      border: 1px solid #e7e5e4;
+      box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+    }
+    .chat-bubble-user {
+      background-color: #9d4f32;
+      color: #ffffff;
+    }
+    /* Markdown 优雅排版样式 */
+    .chat-markdown-content {
+      line-height: 1.7;
+    }
+    .chat-markdown-content h1, 
+    .chat-markdown-content h2, 
+    .chat-markdown-content h3, 
+    .chat-markdown-content h4 {
+      font-weight: 700;
+      color: #1c1917;
+      margin-top: 0.6rem;
+      margin-bottom: 0.3rem;
+    }
+    .chat-markdown-content h1 { font-size: 1.15rem; }
+    .chat-markdown-content h2 { font-size: 1.05rem; }
+    .chat-markdown-content h3 { font-size: 0.95rem; }
+    .chat-markdown-content h4 { font-size: 0.875rem; }
+    .chat-markdown-content p {
+      margin-bottom: 0.45rem;
+    }
+    .chat-markdown-content p:last-child {
+      margin-bottom: 0;
+    }
+    .chat-markdown-content ul {
+      list-style-type: disc;
+      padding-left: 1.25rem;
+      margin-bottom: 0.45rem;
+    }
+    .chat-markdown-content ol {
+      list-style-type: decimal;
+      padding-left: 1.25rem;
+      margin-bottom: 0.45rem;
+    }
+    .chat-markdown-content li {
+      margin-bottom: 0.2rem;
+    }
+    .chat-markdown-content strong {
+      font-weight: 600;
+      color: #0c0a09;
+    }
+    .chat-markdown-content blockquote {
+      border-left: 3px solid #b45f3f;
+      padding-left: 0.75rem;
+      color: #57534e;
+      margin: 0.4rem 0;
+      background-color: #fcf8f5;
+      padding-top: 0.2rem;
+      padding-bottom: 0.2rem;
+      border-radius: 0 0.5rem 0.5rem 0;
+    }
+    .chat-markdown-content code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.85em;
+      background-color: #f5f5f4;
+      color: #b45f3f;
+      padding: 0.15rem 0.35rem;
+      border-radius: 0.375rem;
+      border: 1px solid #e7e5e4;
+    }
+    .chat-markdown-content pre {
+      background-color: #1c1917;
+      color: #f5f5f4;
+      padding: 0.75rem;
+      border-radius: 0.75rem;
+      overflow-x: auto;
+      margin: 0.5rem 0;
+      font-size: 0.75rem;
+    }
+    .chat-markdown-content pre code {
+      background: transparent;
+      color: inherit;
+      padding: 0;
+      border: none;
+    }
+    .chat-markdown-content img {
+      max-width: 100%;
+      border-radius: 0.75rem;
+      margin: 0.5rem 0;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      border: 1px solid #e7e5e4;
+    }
+  </style>
+</head>
+<body class="bg-stone-100 text-stone-800 antialiased h-screen flex overflow-hidden font-sans">
+  <div id="app" v-cloak class="flex-1 flex overflow-hidden w-full">
+    
+    <!-- 左侧主导航 Sidebar (经典垂直侧边栏切换模式) -->
+    <aside class="w-64 bg-stone-900 text-stone-300 flex flex-col justify-between border-r border-stone-800 shrink-0 select-none">
+      <div>
+        <!-- 品牌 Logo: OmniFlow 与 𝓥 极速流线徽标 -->
+        <div class="p-5 border-b border-stone-800 flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-amber-600 to-rose-500 flex items-center justify-center text-white font-serif font-black italic text-2xl shadow-md select-none tracking-tighter">
+            𝓥
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h1 class="font-bold text-white text-base tracking-wide font-sans">OmniFlow</h1>
+              <span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1 py-0.5 rounded font-mono font-medium">v3.1</span>
+            </div>
+            <p class="text-[11px] text-stone-400">One Prompt, Omni Deliver</p>
+          </div>
+        </div>
+
+        <!-- 导航菜单项 (垂直切换模式，首页为 Omni Hub / FirstPage) -->
+        <nav class="p-3 space-y-1.5 text-sm">
+          <button @click="currentNav = 'first_page'"
+                  class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-left font-medium"
+                  :class="currentNav === 'first_page' ? 'bg-brand-600 text-white shadow-sm' : 'hover:bg-stone-800 text-stone-300'">
+            <span class="text-lg">💬</span>
+            <span class="flex-1 font-semibold">Omni Hub</span>
+            <span class="text-[10px] text-stone-400 font-mono hidden sm:inline">FirstPage</span>
+            <span v-if="currentNav === 'first_page'" class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+          </button>
+
+          <button @click="currentNav = 'visual'"
+                  class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-left font-medium"
+                  :class="currentNav === 'visual' ? 'bg-brand-600 text-white shadow-sm' : 'hover:bg-stone-800 text-stone-300'">
+            <span class="text-lg">🎨</span>
+            <span>视觉海报工作区</span>
+          </button>
+
+          <button @click="currentNav = 'motion'"
+                  class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-left font-medium"
+                  :class="currentNav === 'motion' ? 'bg-brand-600 text-white shadow-sm' : 'hover:bg-stone-800 text-stone-300'">
+            <span class="text-lg">🎬</span>
+            <span>动态视频工作区</span>
+          </button>
+
+          <button @click="currentNav = 'script'"
+                  class="w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-left font-medium"
+                  :class="currentNav === 'script' ? 'bg-brand-600 text-white shadow-sm' : 'hover:bg-stone-800 text-stone-300'">
+            <span class="text-lg">📝</span>
+            <span>文案脚本工作区</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- 侧边栏底部状态与文档链接 -->
+      <div class="p-4 border-t border-stone-800 bg-stone-950/40 text-xs space-y-2">
+        <div class="flex items-center justify-between text-stone-400">
+          <span>引擎驱动矩阵:</span>
+          <span class="font-mono text-emerald-400 font-medium">Agnes AI 核心</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-stone-300 text-[11px]">Agnes 2.5 文本与多模态</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="w-2 h-2 rounded-full bg-amber-400"></span>
+          <span class="text-stone-300 text-[11px]">电影级平滑运镜短视频引擎</span>
+        </div>
+        <div class="pt-2 border-t border-stone-800/80 flex items-center justify-between text-[11px]">
+          <a href="/聚合AI工作台_用户使用说明与操作手册_Google_M3.html" target="_blank" 
+             class="text-amber-400 hover:text-amber-300 flex items-center gap-1 transition">
+            <span>📖</span>
+            <span class="underline">使用手册 (HTML)</span>
+          </a>
+          <span class="text-stone-500 font-mono">v3.0.0</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- 右侧内容主区域 -->
+    <main class="flex-1 flex flex-col min-w-0 bg-stone-50 overflow-hidden relative">
+      
+      <!-- ======================================================== -->
+      <!-- 视图 0：Omni Hub (FirstPage) - 全模态协同总览中心 -->
+      <!-- ======================================================== -->
+      <div v-show="currentNav === 'first_page'" class="flex-1 flex h-full w-full overflow-hidden">
+        
+        <!-- 左侧：会话历史侧栏 (Session Drawer)，带精致边框与折叠动效，Codex 极细滚动条 -->
+        <div class="h-full border-r border-stone-200 bg-white flex flex-col shrink-0 transition-all duration-300 ease-in-out select-none"
+             :class="isSessionPanelOpen ? 'w-64' : 'w-0 border-r-0 overflow-hidden opacity-0 pointer-events-none'">
+          
+          <!-- 侧栏顶部：新建对话大按钮 -->
+          <div class="p-3 border-b border-stone-100 shrink-0">
+            <button @click="createNewSession" 
+                    class="w-full py-2.5 px-3 bg-stone-900 hover:bg-stone-800 active:scale-[0.98] text-white rounded-xl text-xs font-semibold flex items-center justify-between shadow-xs transition">
+              <span class="flex items-center gap-1.5">
+                <span class="text-sm">➕</span>
+                <span>新建对话</span>
+              </span>
+              <span class="text-[10px] text-stone-400 font-mono bg-stone-800 px-1.5 py-0.5 rounded">New Chat</span>
+            </button>
+          </div>
+
+          <!-- 会话列表：按时间分组，Codex 极细滚动条 -->
+          <div class="flex-1 overflow-y-auto p-2 space-y-3 codex-scrollbar">
+            
+            <!-- 今天 (Today) -->
+            <div v-if="groupedSessions.today.length > 0" class="space-y-1">
+              <div class="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                <span>📌</span>
+                <span>今天</span>
+              </div>
+              <div v-for="s in groupedSessions.today" :key="s.id"
+                   @click="switchSession(s.id)"
+                   class="group relative flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition"
+                   :class="s.id === currentSessionId ? 'bg-stone-100 text-stone-900 font-semibold shadow-2xs border-l-2 border-brand-600' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'">
+                <div class="flex items-center gap-2 min-w-0 flex-1 pr-1">
+                  <span class="text-xs shrink-0">{{ s.id === currentSessionId ? '💬' : '💭' }}</span>
+                  <span class="truncate text-xs" :title="s.title">{{ s.title }}</span>
+                </div>
+                <div class="hidden group-hover:flex items-center gap-0.5 shrink-0 bg-stone-100/90 pl-1 rounded">
+                  <button @click.stop="renameSession(s.id, $event)" title="重命名" class="p-1 hover:text-brand-600 text-stone-400 hover:bg-white rounded transition">✏️</button>
+                  <button @click.stop="deleteSession(s.id, $event)" title="删除" class="p-1 hover:text-red-600 text-stone-400 hover:bg-white rounded transition">🗑️</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 近 7 天 (Previous 7 Days) -->
+            <div v-if="groupedSessions.previous7Days.length > 0" class="space-y-1">
+              <div class="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                <span>🗓️</span>
+                <span>近 7 天</span>
+              </div>
+              <div v-for="s in groupedSessions.previous7Days" :key="s.id"
+                   @click="switchSession(s.id)"
+                   class="group relative flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition"
+                   :class="s.id === currentSessionId ? 'bg-stone-100 text-stone-900 font-semibold shadow-2xs border-l-2 border-brand-600' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'">
+                <div class="flex items-center gap-2 min-w-0 flex-1 pr-1">
+                  <span class="text-xs shrink-0">{{ s.id === currentSessionId ? '💬' : '💭' }}</span>
+                  <span class="truncate text-xs" :title="s.title">{{ s.title }}</span>
+                </div>
+                <div class="hidden group-hover:flex items-center gap-0.5 shrink-0 bg-stone-100/90 pl-1 rounded">
+                  <button @click.stop="renameSession(s.id, $event)" title="重命名" class="p-1 hover:text-brand-600 text-stone-400 hover:bg-white rounded transition">✏️</button>
+                  <button @click.stop="deleteSession(s.id, $event)" title="删除" class="p-1 hover:text-red-600 text-stone-400 hover:bg-white rounded transition">🗑️</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 更早 (Older) -->
+            <div v-if="groupedSessions.older.length > 0" class="space-y-1">
+              <div class="text-[10px] font-bold text-stone-400 uppercase tracking-wider px-2 py-0.5 flex items-center gap-1">
+                <span>📂</span>
+                <span>更早</span>
+              </div>
+              <div v-for="s in groupedSessions.older" :key="s.id"
+                   @click="switchSession(s.id)"
+                   class="group relative flex items-center justify-between p-2 rounded-xl text-xs cursor-pointer transition"
+                   :class="s.id === currentSessionId ? 'bg-stone-100 text-stone-900 font-semibold shadow-2xs border-l-2 border-brand-600' : 'text-stone-600 hover:bg-stone-50 hover:text-stone-900'">
+                <div class="flex items-center gap-2 min-w-0 flex-1 pr-1">
+                  <span class="text-xs shrink-0">💭</span>
+                  <span class="truncate text-xs" :title="s.title">{{ s.title }}</span>
+                </div>
+                <div class="hidden group-hover:flex items-center gap-0.5 shrink-0 bg-stone-100/90 pl-1 rounded">
+                  <button @click.stop="renameSession(s.id, $event)" title="重命名" class="p-1 hover:text-brand-600 text-stone-400 hover:bg-white rounded transition">✏️</button>
+                  <button @click.stop="deleteSession(s.id, $event)" title="删除" class="p-1 hover:text-red-600 text-stone-400 hover:bg-white rounded transition">🗑️</button>
+                </div>
+              </div>
+            </div>
+
+            <div v-if="sessions.length === 0" class="p-6 text-center text-xs text-stone-400">
+              暂无历史会话
+            </div>
+          </div>
+
+          <!-- 会话侧栏底部状态条 -->
+          <div class="p-2.5 border-t border-stone-100 text-[11px] text-stone-400 flex items-center justify-between shrink-0 bg-stone-50/70">
+            <span class="font-mono">共 {{ sessions.length }} 个会话</span>
+            <button @click="clearAllSessions" class="hover:text-red-600 transition flex items-center gap-1 text-[10px]">
+              <span>清空历史</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 右侧：Omni Hub 核心主视窗 -->
+        <div class="flex-1 flex flex-col h-full max-w-5xl mx-auto w-full p-4 lg:p-6 overflow-hidden min-w-0">
+          
+          <!-- 头部状态条 -->
+          <div class="bg-white px-5 py-3 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-between shrink-0 mb-4 gap-3">
+            <div class="flex items-center gap-3">
+              <!-- 折叠/展开会话侧栏按钮 -->
+              <button @click="isSessionPanelOpen = !isSessionPanelOpen"
+                      :title="isSessionPanelOpen ? '收起会话列表' : '展开会话历史'"
+                      class="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-xs transition shrink-0">
+                <span class="transform transition duration-200" :class="isSessionPanelOpen ? '' : 'rotate-180'">◀</span>
+              </button>
+
+              <div class="w-8 h-8 rounded-xl bg-stone-900 flex items-center justify-center text-white text-base font-bold shadow-xs">
+                ⚡
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h2 class="text-sm font-bold text-stone-900">Omni Hub 协同调度中心</h2>
+                  <span class="text-[10px] text-stone-400 font-mono hidden md:inline">FirstPage</span>
+                  <span class="text-[10px] bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded-full font-medium">
+                    Gemini 3.8 Flash 主控 · Multi-Agent 架构
+                  </span>
+                </div>
+                <p class="text-[11px] text-stone-400">一句话全案生成：Gemini 智能决策调度 ➔ 口播脚本 + 商业海报 + Agnes 专职短视频</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2 shrink-0">
+              <button @click="createNewSession"
+                      class="px-3 py-1.5 text-xs font-semibold bg-stone-900 hover:bg-stone-800 active:scale-95 text-white rounded-xl transition flex items-center gap-1 shadow-2xs">
+                <span>➕</span>
+                <span class="hidden sm:inline">新建对话</span>
+              </button>
+              <button @click="sendQuickPrompt('帮我生成一套黑曜石男士淡雅冷香的带货全案，主打24小时持久木质香与高冷商务气场，包含口播、海报与5秒运镜短视频')" 
+                      class="px-3 py-1.5 text-xs font-medium bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 rounded-xl transition flex items-center gap-1">
+                <span>🚀</span>
+                <span class="hidden sm:inline">体验全案生成</span>
+              </button>
+              <button @click="clearChat" class="px-2.5 py-1.5 text-xs font-medium text-stone-500 hover:text-stone-800 hover:bg-stone-100 rounded-xl transition">
+                清空视窗
+              </button>
+            </div>
+          </div>
+
+          <!-- 消息流动展示区域 (Codex 极细微隐滚动条) -->
+          <div class="flex-1 overflow-y-auto space-y-4 pr-1 mb-4 codex-scrollbar" ref="chatScrollBox">
+          
+          <!-- 空态初始欢迎卡片 -->
+          <div v-if="chatMessages.length === 0" class="my-6 space-y-6">
+            <div class="bg-gradient-to-br from-white to-brand-50/40 p-8 rounded-3xl border border-stone-200 shadow-sm text-center max-w-2xl mx-auto space-y-3">
+              <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-3xl text-white shadow-md">
+                ⚡
+              </div>
+              <h3 class="text-xl font-bold text-stone-900">欢迎来到 FirstPage 创作总览中心</h3>
+              <p class="text-xs text-stone-600 leading-relaxed">
+                无需在各个工具间繁琐切换。在下方输入您的带货想法或商品名称，即可自动完成<b>“爆款脚本 ➔ 高清商业海报 ➔ 电影级运镜短视频”</b>全链路打包生成，并随时可一键流转至三大工作区精修！
+              </p>
+            </div>
+
+            <!-- 4 大高频场景快捷提问药丸 -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-3xl mx-auto">
+              <button v-for="(p, idx) in promptPillOptions" :key="idx"
+                      @click="sendQuickPrompt(p.text)"
+                      class="p-3.5 bg-white hover:bg-brand-50/50 rounded-2xl border border-stone-200 hover:border-brand-300 text-left transition shadow-xs group flex items-start gap-3">
+                <span class="text-xl p-1.5 bg-stone-50 rounded-xl group-hover:scale-110 transition">{{ p.icon }}</span>
+                <div>
+                  <div class="text-xs font-bold text-stone-800 group-hover:text-brand-700">{{ p.title }}</div>
+                  <div class="text-[11px] text-stone-500 mt-0.5 line-clamp-1">{{ p.desc }}</div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- 消息气泡列表 -->
+          <div v-for="(msg, mIdx) in chatMessages" :key="mIdx" class="flex flex-col"
+               :class="msg.role === 'user' ? 'items-end' : 'items-start'">
+            
+            <div class="flex items-start gap-2.5 max-w-[88%]"
+                 :class="msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'">
+              
+              <!-- 头像 -->
+              <div class="w-7 h-7 rounded-lg flex items-center justify-center text-xs shrink-0 font-bold select-none shadow-xs"
+                   :class="msg.role === 'user' ? 'bg-brand-600 text-white' : 'bg-stone-900 text-amber-400'">
+                {{ msg.role === 'user' ? '我' : '⚡' }}
+              </div>
+
+              <!-- 消息气泡 -->
+              <div class="p-4 rounded-2xl text-xs leading-relaxed space-y-3"
+                   :class="msg.role === 'user' ? 'chat-bubble-user rounded-tr-none' : 'chat-bubble-ai text-stone-800 rounded-tl-none'">
+                
+                <!-- 用户提问普通文本展示 -->
+                <div v-if="msg.role === 'user'" class="whitespace-pre-wrap select-text font-sans">{{ msg.content }}</div>
+                
+                <!-- AI 回答 Markdown 富文本渲染 -->
+                <div v-else class="select-text font-sans chat-markdown-content" v-html="renderMarkdown(msg.content)"></div>
+                
+                <!-- 富媒体交互卡片集群 (如果携带 cards) -->
+                <div v-if="msg.cards" class="space-y-3 pt-2 border-t border-stone-100">
+                  
+                  <!-- 1. 商业海报卡片 -->
+                  <div v-if="msg.cards.poster && msg.cards.poster.image_url" class="p-3.5 bg-stone-50 rounded-xl border border-stone-200 space-y-2.5">
+                    <div class="flex items-center justify-between text-[11px] font-medium">
+                      <span class="flex items-center gap-1.5 text-stone-800 font-bold">
+                        <span>🎨</span>
+                        <span>商业主图海报成品</span>
+                      </span>
+                      <a :href="msg.cards.poster.image_url" target="_blank" class="text-brand-600 hover:text-brand-700 underline text-[11px]">查看原图 ↗</a>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border border-stone-200 bg-stone-950 max-h-72 flex items-center justify-center">
+                      <img :src="msg.cards.poster.image_url" alt="海报" class="max-h-68 w-auto object-contain rounded-lg shadow-sm">
+                    </div>
+                    <div class="flex items-center justify-end gap-2 pt-1 flex-wrap">
+                      <button @click="sendToVisual(msg.cards.poster.image_url)" class="px-3 py-1.5 bg-white hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-lg text-[11px] font-medium transition flex items-center gap-1 shadow-2xs">
+                        <span>🎨</span>
+                        <span>送入海报工作区换风格</span>
+                      </button>
+                      <button @click="sendToMotion(msg.cards.poster.image_url, msg.cards.motion ? msg.cards.motion.title : '', msg.cards.motion ? msg.cards.motion.subtitle : '')" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-[11px] font-medium transition flex items-center gap-1 shadow-2xs">
+                        <span>🎬</span>
+                        <span>送去制作运镜视频</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 2. 运镜短视频播放卡片 -->
+                  <div v-if="msg.cards.video && msg.cards.video.video_url" class="p-3.5 bg-stone-900 text-white rounded-xl border border-stone-800 space-y-2.5">
+                    <div class="flex items-center justify-between text-[11px] font-medium">
+                      <span class="flex items-center gap-1.5 text-amber-400 font-bold">
+                        <span>🎬</span>
+                        <span>电影级平滑运镜短视频 (9:16 竖屏)</span>
+                      </span>
+                      <a :href="msg.cards.video.video_url" download class="text-amber-400 hover:underline text-[11px]">下载 MP4 ⬇</a>
+                    </div>
+                    <div class="rounded-xl overflow-hidden border border-stone-800 bg-black flex items-center justify-center max-h-80">
+                      <video :src="msg.cards.video.video_url" controls class="max-h-76 w-auto rounded-lg shadow-md"></video>
+                    </div>
+                    <div class="flex items-center justify-end gap-2 pt-1">
+                      <button @click="sendToMotion(msg.cards.poster ? msg.cards.poster.image_url : '', '', '', '', msg.cards.video.video_url)" class="px-3 py-1.5 bg-stone-800 hover:bg-stone-700 text-stone-200 border border-stone-700 rounded-lg text-[11px] font-medium transition flex items-center gap-1">
+                        <span>⚙️</span>
+                        <span>送入视频工作区调整运镜</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- 3. FABE 脚本卡片 -->
+                  <div v-if="msg.cards.script" class="p-3.5 bg-emerald-50/60 rounded-xl border border-emerald-200/80 space-y-2">
+                    <div class="flex items-center justify-between text-[11px] font-medium text-emerald-900">
+                      <span class="flex items-center gap-1.5 font-bold">
+                        <span>📝</span>
+                        <span>带货口播与 FABE 拆解已就绪</span>
+                      </span>
+                      <button @click="sendToScript(msg.cards.script)" class="text-emerald-700 hover:text-emerald-900 font-medium underline text-[11px]">
+                        送入文案脚本工作区精修 ➔
+                      </button>
+                    </div>
+                  </div>
+
+                </div>
+
+                <div v-if="msg.role === 'assistant'" class="flex items-center justify-between pt-1 border-t border-stone-100 text-[10px] text-stone-400">
+                  <span class="flex items-center gap-1.5 font-mono">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                    <span>{{ msg.model || 'Agnes AI 核心引擎' }} · {{ msg.time }}</span>
+                  </span>
+                  <button @click="copyMessage(msg.content)" class="hover:text-brand-600 transition">复制全文</button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <!-- AI 正在思考加载态 -->
+          <div v-if="isAiResponding" class="flex items-start gap-2.5 max-w-[85%]">
+            <div class="w-7 h-7 rounded-lg bg-stone-900 text-amber-400 flex items-center justify-center text-xs shrink-0 font-bold shadow-xs">
+              ⚡
+            </div>
+            <div class="p-3.5 bg-white rounded-2xl rounded-tl-none border border-stone-200 shadow-xs text-xs text-stone-600 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-bounce"></span>
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style="animation-delay: 0.15s"></span>
+              <span class="w-2 h-2 rounded-full bg-amber-500 animate-bounce" style="animation-delay: 0.3s"></span>
+              <span class="font-medium text-stone-500 ml-1 font-mono tracking-tight">Analyzing and Deep Thinking...</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 底部固定输入框区域 (Chat Input Bar) -->
+        <div class="bg-white rounded-2xl border border-stone-200 p-3 shadow-md shrink-0 space-y-2">
+          <div class="relative">
+            <textarea v-model="userInputText" 
+                      @keydown.enter.prevent="handleEnterPress"
+                      placeholder="在 OmniFlow 提出你的带货诉求（例如：出套黑曜石男香带货全案，包含脚本、海报与5秒推镜头短视频）..." 
+                      rows="2"
+                      class="w-full resize-none bg-stone-50 p-2.5 pr-24 rounded-xl text-xs text-stone-800 placeholder-stone-400 border border-stone-200 focus:outline-none focus:ring-1 focus:ring-brand-500 font-sans"></textarea>
+            
+            <button @click="sendMessage" :disabled="isAiResponding || !userInputText.trim()"
+                    class="absolute right-2 bottom-2.5 px-4 py-2 bg-brand-500 hover:bg-brand-600 disabled:opacity-40 text-white font-medium rounded-xl text-xs transition shadow-xs flex items-center gap-1">
+              <span>{{ isAiResponding ? '生成中...' : '发送' }}</span>
+              <span>✈️</span>
+            </button>
+          </div>
+
+          <div class="flex items-center justify-between text-[11px] text-stone-400 px-1 flex-wrap gap-2">
+            <!-- 左侧：Powered by Muti-Agent 状态徽标 -->
+            <div class="flex items-center gap-2">
+              <span class="flex items-center gap-1.5 font-semibold text-stone-700">
+                <span class="relative flex h-2 w-2">
+                  <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span>Powered by Muti-Agent</span>
+              </span>
+              <span class="text-stone-300">|</span>
+              <span class="text-[10px] text-stone-400 hidden sm:inline">Gemini 3.8 Flash 主控 · Agnes 视频专职调度</span>
+            </div>
+
+            <!-- 右侧：Context Window 小圆环与快捷键说明 -->
+            <div class="flex items-center gap-3">
+              
+              <!-- Context Window 小圆环组件 -->
+              <div class="flex items-center gap-1.5 cursor-pointer group relative" 
+                   :title="`Context Window: 已用 ${contextTokens.toLocaleString()} / 1,000,000 Tokens (${contextUsagePercent}%)`">
+                <div class="relative w-4 h-4 flex items-center justify-center">
+                  <svg class="w-4 h-4 transform -rotate-90" viewBox="0 0 36 36">
+                    <!-- 底环背景 -->
+                    <path class="text-stone-200" stroke-width="4" stroke="currentColor" fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    <!-- 动态高亮环 -->
+                    <path class="text-brand-500 transition-all duration-300" stroke-dasharray="100, 100"
+                          :stroke-dashoffset="100 - contextRingProgress"
+                          stroke-width="4.5"
+                          stroke-linecap="round"
+                          stroke="currentColor" fill="none"
+                          d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  </svg>
+                </div>
+                <span class="text-[10px] font-mono text-stone-500 group-hover:text-brand-600 transition">{{ contextUsageText }}</span>
+                
+                <!-- 悬停气泡 Tooltip -->
+                <div class="absolute bottom-6 right-0 hidden group-hover:flex flex-col bg-stone-900 text-white text-[10px] py-1.5 px-3 rounded-xl shadow-xl whitespace-nowrap z-30 pointer-events-none border border-stone-800 space-y-0.5">
+                  <div class="font-bold text-amber-300 flex items-center gap-1">
+                    <span>⚡</span>
+                    <span>Gemini 3.8 Flash Context Window</span>
+                  </div>
+                  <div class="text-stone-300">已用: {{ contextTokens.toLocaleString() }} / 1,000,000 Tokens ({{ contextUsagePercent }}%)</div>
+                  <div class="text-[9px] text-stone-400">1M 超长多模态上下文就绪</div>
+                </div>
+              </div>
+
+              <span class="text-stone-300">·</span>
+              <span>按 Enter 发送，Shift+Enter 换行</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+      <!-- ======================================================== -->
+      <!-- 视图 3：文案脚本工作区 (Script Workspace) -->
+      <!-- ======================================================== -->
+      <div v-show="currentNav === 'script'" class="h-full overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+        
+        <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-xl font-bold text-stone-900">文案脚本工作区 (Script Workspace)</h2>
+              <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-medium">
+                FABE 转化模型驱动
+              </span>
+              <span class="text-xs bg-rose-50 text-rose-700 border border-rose-200 px-2.5 py-0.5 rounded-full font-medium">
+                新广告法合规排查
+              </span>
+            </div>
+            <p class="text-xs text-stone-500 mt-1">提炼商品核心特征，一键生成黄金3秒吸睛短视频口播、FABE 话术架构与配套分镜海报提示词。</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button @click="generateScript" :disabled="isGeneratingScript || !scriptProductName.trim()" 
+                    class="px-5 py-2 text-xs font-medium bg-brand-500 hover:bg-brand-600 text-white rounded-xl transition shadow-sm disabled:opacity-50 flex items-center gap-1.5">
+              <span v-if="isGeneratingScript" class="animate-spin">⏳</span>
+              <span>{{ isGeneratingScript ? '脚本智能生成中...' : '🚀 生成全套口播与 FABE' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- 左侧配置表单 (5列) -->
+          <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
+            
+            <!-- 商品名称 -->
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-2">1. 商品名称 / 品类</label>
+              <input v-model="scriptProductName" type="text" placeholder="例如：黑曜石男士淡雅冷香水、多肽紧致眼霜..." 
+                     class="w-full bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500 font-sans">
+            </div>
+
+            <!-- 核心卖点 -->
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-2">2. 核心卖点与原料功效 (FABE 输入源)</label>
+              <textarea v-model="scriptHighlights" rows="4" 
+                        placeholder="输入商品的主要成分、卖点或用户痛点（例如：24小时持久留香，瑞士奇华顿香精，前调佛手柑，中后调冷冽雪松，无酒精刺激）..." 
+                        class="w-full bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500 font-sans"></textarea>
+            </div>
+
+            <!-- 目标客群 -->
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-2">3. 目标客群与应用场景</label>
+              <input v-model="scriptTargetAudience" type="text" placeholder="例如：25-35岁职场精英男士、商务会议与社交约会..." 
+                     class="w-full bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500 font-sans">
+            </div>
+
+            <!-- 快捷操作栏 -->
+            <div class="pt-2 flex items-center justify-between gap-2 border-t border-stone-100 flex-wrap">
+              <button @click="checkComplianceDirect" :disabled="!scriptHighlights.trim()"
+                      class="px-3.5 py-2 bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl text-xs font-medium transition disabled:opacity-40 flex items-center gap-1.5">
+                <span>🚨</span>
+                <span>单检卖点广告法合规</span>
+              </button>
+              <div class="flex items-center gap-1.5 text-[11px]">
+                <span class="text-stone-400">快速填入：</span>
+                <button @click="fillScriptPreset('perfume')" class="text-brand-600 hover:underline">男香冷调</button>
+                <span class="text-stone-300">·</span>
+                <button @click="fillScriptPreset('serum')" class="text-brand-600 hover:underline">抗老眼霜</button>
+                <span class="text-stone-300">·</span>
+                <button @click="fillScriptPreset('cup')" class="text-brand-600 hover:underline">保温杯</button>
+              </div>
+            </div>
+
+            <div class="p-3 bg-stone-50 rounded-xl border border-stone-200 text-stone-500 text-[11px] leading-relaxed space-y-1">
+              <div class="font-bold text-stone-700">💡 提示：</div>
+              <div>• 点击生成后，系统将自动生成口播文案并同步生成海报分镜提示词；</div>
+              <div>• 可在右侧一键将提炼的分镜提示词直接送入【视觉海报工作区】。</div>
+            </div>
+
+          </div>
+
+          <!-- 右侧生成结果展示区 (7列) -->
+          <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between space-y-4">
+            
+            <div class="space-y-4">
+              <!-- 顶部 TAB 切换栏 -->
+              <div class="flex items-center justify-between pb-3 border-b border-stone-100 flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <button @click="scriptTab = 'oral'" 
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+                          :class="scriptTab === 'oral' ? 'bg-brand-50 text-brand-700 border border-brand-200' : 'text-stone-500 hover:bg-stone-50'">
+                    📝 爆款口播台词
+                  </button>
+                  <button @click="scriptTab = 'fabe'" 
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+                          :class="scriptTab === 'fabe' ? 'bg-brand-50 text-brand-700 border border-brand-200' : 'text-stone-500 hover:bg-stone-50'">
+                    📊 FABE 话术架构
+                  </button>
+                  <button @click="scriptTab = 'compliance'" 
+                          class="px-3 py-1.5 rounded-lg text-xs font-bold transition"
+                          :class="scriptTab === 'compliance' ? 'bg-rose-50 text-rose-700 border border-rose-200' : 'text-stone-500 hover:bg-stone-50'">
+                    🚨 合规风控排查 ({{ complianceViolations.length }})
+                  </button>
+                </div>
+
+                <button v-if="scriptResult && scriptResult.oral_script" 
+                        @click="copyMessage(scriptResult.oral_script)" 
+                        class="text-xs text-brand-600 hover:underline flex items-center gap-1">
+                  <span>📋 复制口播全文</span>
+                </button>
+              </div>
+
+              <!-- TAB 1: 爆款带货口播台词 -->
+              <div v-if="scriptTab === 'oral'" class="space-y-3">
+                <div v-if="isGeneratingScript" class="py-16 text-center text-stone-400 space-y-3">
+                  <div class="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="text-xs">Agnes 语言模型正在编写黄金3秒吸睛台词与促单话术...</div>
+                </div>
+                <div v-else-if="scriptResult && scriptResult.oral_script" class="bg-stone-50 p-4 rounded-xl border border-stone-200 text-xs text-stone-800 leading-relaxed whitespace-pre-wrap font-sans max-h-96 overflow-y-auto select-text">
+                  {{ scriptResult.oral_script }}
+                </div>
+                <div v-else class="py-16 text-center text-stone-400 space-y-2">
+                  <div class="text-3xl">📝</div>
+                  <div class="text-xs">在左侧输入商品信息并点击生成，爆款口播台词将在此呈现</div>
+                </div>
+              </div>
+
+              <!-- TAB 2: FABE 话术架构拆解 -->
+              <div v-if="scriptTab === 'fabe'" class="space-y-3">
+                <div v-if="scriptResult && scriptResult.fabe" class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                  <div class="p-3.5 bg-emerald-50/70 rounded-xl border border-emerald-200 space-y-1">
+                    <div class="font-bold text-emerald-900 flex items-center gap-1">
+                      <span>🏷️</span>
+                      <span>F (Feature 特征)</span>
+                    </div>
+                    <p class="text-stone-700 leading-relaxed">{{ scriptResult.fabe.feature || '待提炼' }}</p>
+                  </div>
+
+                  <div class="p-3.5 bg-blue-50/70 rounded-xl border border-blue-200 space-y-1">
+                    <div class="font-bold text-blue-900 flex items-center gap-1">
+                      <span>⚡</span>
+                      <span>A (Advantage 优势)</span>
+                    </div>
+                    <p class="text-stone-700 leading-relaxed">{{ scriptResult.fabe.advantage || '待提炼' }}</p>
+                  </div>
+
+                  <div class="p-3.5 bg-amber-50/70 rounded-xl border border-amber-200 space-y-1">
+                    <div class="font-bold text-amber-900 flex items-center gap-1">
+                      <span>🎁</span>
+                      <span>B (Benefit 利益)</span>
+                    </div>
+                    <p class="text-stone-700 leading-relaxed">{{ scriptResult.fabe.benefit || '待提炼' }}</p>
+                  </div>
+
+                  <div class="p-3.5 bg-purple-50/70 rounded-xl border border-purple-200 space-y-1">
+                    <div class="font-bold text-purple-900 flex items-center gap-1">
+                      <span>🛡️</span>
+                      <span>E (Evidence 证据)</span>
+                    </div>
+                    <p class="text-stone-700 leading-relaxed">{{ scriptResult.fabe.evidence || '待提炼' }}</p>
+                  </div>
+                </div>
+                <div v-else class="py-16 text-center text-stone-400 space-y-2">
+                  <div class="text-3xl">📊</div>
+                  <div class="text-xs">生成后将自动按 FABE 四维模型拆解特征、差异化优势与顾客利益</div>
+                </div>
+              </div>
+
+              <!-- TAB 3: 广告法合规排查清单 -->
+              <div v-if="scriptTab === 'compliance'" class="space-y-3">
+                <div v-if="complianceViolations.length" class="space-y-2.5 max-h-96 overflow-y-auto">
+                  <div v-for="(v, vIdx) in complianceViolations" :key="vIdx" 
+                       class="p-3 bg-rose-50/80 rounded-xl border border-rose-200 text-xs space-y-1">
+                    <div class="flex items-center justify-between text-rose-800 font-bold">
+                      <span class="flex items-center gap-1">
+                        <span>🚨</span>
+                        <span>违规绝对化用语：“{{ v.word }}”</span>
+                      </span>
+                      <span class="text-[10px] bg-rose-200/80 text-rose-900 px-2 py-0.5 rounded-full">高风险</span>
+                    </div>
+                    <div class="text-stone-600 text-[11px]">法律依据：{{ v.rule }}</div>
+                    <div class="text-emerald-700 font-medium text-[11px]">💡 合规建议：{{ v.suggestion }}</div>
+                  </div>
+                </div>
+                <div v-else-if="scriptResult" class="py-12 text-center text-emerald-600 space-y-2">
+                  <div class="text-3xl">✅</div>
+                  <div class="text-xs font-bold">未检测到广告法绝对化禁用词，文案安全合规！</div>
+                </div>
+                <div v-else class="py-16 text-center text-stone-400 space-y-2">
+                  <div class="text-3xl">🛡️</div>
+                  <div class="text-xs">广告法排查引擎就绪，将毫秒级拦截极限词并提供安全话术替代</div>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 底部协同流转操作条 -->
+            <div v-if="scriptResult && scriptResult.visual_prompt" 
+                 class="pt-3 border-t border-stone-100 flex items-center justify-between flex-wrap gap-2">
+              <div class="text-xs text-stone-500 truncate max-w-sm">
+                <b>提炼分镜：</b>{{ scriptResult.visual_prompt }}
+              </div>
+              <button @click="sendToVisual('', scriptResult.visual_prompt)" 
+                      class="px-4 py-2 text-xs font-medium bg-brand-500 hover:bg-brand-600 text-white rounded-xl transition shadow-sm flex items-center gap-1.5">
+                <span>🎨</span>
+                <span>携带此分镜送入视觉海报工作区 ➔</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 视图 1：视觉海报工作区 (Visual Workspace) -->
+      <!-- ======================================================== -->
+      <div v-show="currentNav === 'visual'" class="h-full overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+        
+        <!-- 顶部功能横幅 -->
+        <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-xl font-bold text-stone-900">视觉海报工作区 (Visual Workspace)</h2>
+              <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-0.5 rounded-full font-medium">
+                Agnes Image 2.5 Flash 驱动
+              </span>
+              <span class="text-xs bg-brand-50 text-brand-700 border border-brand-200 px-2.5 py-0.5 rounded-full font-medium">
+                5层工业级商业摄影装配
+              </span>
+              <span class="text-xs bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-0.5 rounded-full font-medium">
+                GitHub 高星项目摄影标准
+              </span>
+            </div>
+            <p class="text-xs text-stone-500 mt-1">专为电商带货与新媒体打造的商业摄影级海报工作区，支持 6 大爆款行业预设、底座、布光、景别与画幅参数化装配，一键直通运镜视频生成。</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button @click="generatePoster" :disabled="isGeneratingPoster || !visualPrompt.trim()" 
+                    class="px-5 py-2.5 text-xs font-semibold bg-brand-500 hover:bg-brand-600 text-white rounded-xl transition shadow-sm disabled:opacity-50 flex items-center gap-2">
+              <span v-if="isGeneratingPoster" class="animate-spin">⏳</span>
+              <span v-else>🎨</span>
+              <span>{{ isGeneratingPoster ? 'Agnes 商业海报渲染中...' : '开始渲染商业海报' }}</span>
+              <span class="px-1.5 py-0.5 bg-brand-600/60 rounded text-[10px] font-mono">{{ visualRatio }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- 左侧配置调配面板 (7列) -->
+          <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
+            
+            <!-- 1. 6大电商爆款行业预设 (一键套用专业摄影方案) -->
+            <div>
+              <div class="flex items-center justify-between text-xs font-bold text-stone-800 mb-2">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                  <span>1. 行业爆款预设方案 (一键套用商业摄影方案)</span>
+                </span>
+                <span class="text-[11px] text-stone-400 font-normal">参考顶尖电商摄影标准库</span>
+              </div>
+              <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <button v-for="preset in visualIndustryPresets" :key="preset.id"
+                        @click="selectIndustryPreset(preset)"
+                        class="p-2.5 rounded-xl border text-left transition flex flex-col justify-between relative overflow-hidden group"
+                        :class="visualSelectedPreset === preset.id ? 'border-brand-500 bg-brand-50/70 shadow-xs' : 'border-stone-200 hover:border-stone-300 hover:bg-stone-50'">
+                  <div class="flex items-center gap-1.5 mb-1">
+                    <span class="text-base">{{ preset.icon }}</span>
+                    <span class="text-xs font-bold text-stone-800 truncate" :class="{'text-brand-700': visualSelectedPreset === preset.id}">{{ preset.name }}</span>
+                  </div>
+                  <div class="text-[10px] text-stone-500 leading-tight line-clamp-1">{{ preset.desc }}</div>
+                  <div v-if="visualSelectedPreset === preset.id" class="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-brand-500"></div>
+                </button>
+              </div>
+            </div>
+
+            <!-- 2. 商品核心主体描述 -->
+            <div>
+              <div class="flex items-center justify-between text-xs font-bold text-stone-800 mb-1.5">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                  <span>2. 商品主体与材质卖点</span>
+                </span>
+                <span class="text-[11px] text-stone-400 font-normal">写明商品材质（如磨砂玻璃、航空铝）质感更惊艳</span>
+              </div>
+              <div class="relative">
+                <input v-model="visualProductDesc" @input="compilePrompt"
+                       type="text" 
+                       placeholder="输入商品主体与核心卖点（如：高定玻尿酸修护精华液，晶莹通透玻璃瓶身与银色泵头）..." 
+                       class="w-full bg-stone-50 px-3.5 py-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500 font-sans">
+              </div>
+            </div>
+
+            <!-- 3. 4维工业级摄影调配器 (Podium, Lighting, Framing, Ratio) -->
+            <div class="space-y-3 pt-1 border-t border-stone-100">
+              
+              <!-- 展台底座选择 -->
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-bold text-stone-700 mb-1.5">
+                  <span>🏛️ 展台底座 (Podium & Surface)</span>
+                  <span class="text-[10px] text-stone-400">稳定接触面与投影质感</span>
+                </div>
+                <div class="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                  <button v-for="(pData, pKey) in podiumOptions" :key="pKey"
+                          @click="setVisualDimension('podium', pKey)"
+                          class="py-1.5 px-2 rounded-lg border text-center text-[11px] transition font-medium flex items-center justify-center gap-1"
+                          :class="visualPodium === pKey ? 'border-brand-500 bg-brand-50 text-brand-700 font-bold' : 'border-stone-200 hover:bg-stone-50 text-stone-600'">
+                    <span>{{ pData.icon }}</span>
+                    <span>{{ pData.name }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 影棚光效选择 -->
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-bold text-stone-700 mb-1.5">
+                  <span>💡 影棚布光 (Studio Lighting)</span>
+                  <span class="text-[10px] text-stone-400">专业商业光比与通透感</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <button v-for="(lData, lKey) in lightingOptions" :key="lKey"
+                          @click="setVisualDimension('lighting', lKey)"
+                          class="py-1.5 px-2 rounded-lg border text-center text-[11px] transition font-medium flex items-center justify-center gap-1"
+                          :class="visualLighting === lKey ? 'border-brand-500 bg-brand-50 text-brand-700 font-bold' : 'border-stone-200 hover:bg-stone-50 text-stone-600'">
+                    <span>{{ lData.icon }}</span>
+                    <span>{{ lData.name }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 构图景别选择 -->
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-bold text-stone-700 mb-1.5">
+                  <span>📐 镜头机位 (Camera Framing)</span>
+                  <span class="text-[10px] text-stone-400">电商爆款视角与视觉重心</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <button v-for="(fData, fKey) in framingOptions" :key="fKey"
+                          @click="setVisualDimension('framing', fKey)"
+                          class="py-1.5 px-2 rounded-lg border text-center text-[11px] transition font-medium flex items-center justify-center gap-1"
+                          :class="visualFraming === fKey ? 'border-brand-500 bg-brand-50 text-brand-700 font-bold' : 'border-stone-200 hover:bg-stone-50 text-stone-600'">
+                    <span>{{ fData.icon }}</span>
+                    <span>{{ fData.name }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- 画幅比例选择 -->
+              <div>
+                <div class="flex items-center justify-between text-[11px] font-bold text-stone-700 mb-1.5">
+                  <span>🖼️ 画幅比例 (Aspect Ratio)</span>
+                  <span class="text-[10px] text-stone-400">自动适配各平台发布规格</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+                  <button v-for="(rData, rKey) in ratioOptions" :key="rKey"
+                          @click="setVisualDimension('ratio', rKey)"
+                          class="py-1.5 px-2 rounded-lg border text-center transition flex flex-col items-center justify-center"
+                          :class="visualRatio === rKey ? 'border-brand-500 bg-brand-50 text-brand-700 font-bold' : 'border-stone-200 hover:bg-stone-50 text-stone-600'">
+                    <span class="text-xs font-mono font-bold">{{ rKey }}</span>
+                    <span class="text-[10px] text-stone-400">{{ rData.name }}</span>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- 4. 实时编译提示词预览与自由微调 -->
+            <div class="pt-2 border-t border-stone-100">
+              <div class="flex items-center justify-between text-xs font-bold text-stone-800 mb-1.5">
+                <span class="flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-brand-500"></span>
+                  <span>4. 装配好的商业级提示词 (Compiled Prompt)</span>
+                </span>
+                <div class="flex items-center gap-2">
+                  <button @click="compilePrompt" 
+                          class="text-[11px] text-brand-600 hover:text-brand-700 font-normal hover:underline flex items-center gap-0.5">
+                    <span>🔄</span> 重新装配
+                  </button>
+                  <button @click="copyPrompt" 
+                          class="text-[11px] text-stone-500 hover:text-stone-700 font-normal hover:underline flex items-center gap-0.5">
+                    <span>📋</span> 复制
+                  </button>
+                </div>
+              </div>
+              <textarea v-model="visualPrompt" rows="3" 
+                        placeholder="装配好的商业提示词将在此实时呈现，您也可以在此自由输入或微调细节..." 
+                        class="w-full bg-stone-50 p-3 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono leading-relaxed"></textarea>
+            </div>
+
+          </div>
+
+          <!-- 右侧海报展示区 (5列) -->
+          <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-stone-100 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="font-bold text-stone-800">海报渲染成品</span>
+                  <span v-if="visualResultUrl" class="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded text-[10px] font-mono">
+                    {{ visualRatio }} {{ lastGeneratedMeta?.size || '' }}
+                  </span>
+                </div>
+                <span v-if="visualResultUrl" class="text-emerald-600 font-medium">✓ 已落盘保存至本地</span>
+                <span v-else class="text-stone-400">等待渲染</span>
+              </div>
+
+              <!-- 图片展示框 -->
+              <div class="mt-4 rounded-2xl overflow-hidden border border-stone-200 bg-stone-950 flex items-center justify-center min-h-[420px] p-2 relative">
+                <div v-if="isGeneratingPoster" class="text-center text-stone-400 space-y-3 p-4">
+                  <div class="w-10 h-10 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="text-xs text-stone-300 font-medium">Agnes Image 2.5 Flash 正在渲染光影构图...</div>
+                  <div class="text-[11px] text-stone-500">正在生成 {{ ratioOptions[visualRatio]?.name || visualRatio }} ({{ ratioOptions[visualRatio]?.size || '1024x1024' }})</div>
+                </div>
+                <img v-else-if="visualResultUrl" :src="visualResultUrl" alt="商业海报" class="max-h-[500px] w-auto object-contain rounded-xl shadow-md transition">
+                <div v-else class="text-center text-stone-500 space-y-2 p-4">
+                  <span class="text-4xl">🎨</span>
+                  <div class="text-xs font-medium text-stone-400">左侧选择行业预设或调配参数</div>
+                  <div class="text-[11px] text-stone-500">点击“开始渲染商业海报”，高清商拍大片将在此呈现</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部协同流转操作条 -->
+            <div v-if="visualResultUrl" class="pt-3 border-t border-stone-100 flex items-center justify-between flex-wrap gap-2">
+              <a :href="visualResultUrl" target="_blank" class="px-3.5 py-2 text-xs font-medium text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition flex items-center gap-1">
+                <span>🔍</span>
+                <span>查看高清原图 ↗</span>
+              </a>
+              <button @click="sendToMotion(visualResultUrl)" class="px-4 py-2 text-xs font-medium bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition shadow-sm flex items-center gap-1.5">
+                <span>🎬</span>
+                <span>一键送去生成运镜短视频 ➔</span>
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 视图 2：动态视频工作区 (Motion Workspace) -->
+      <!-- ======================================================== -->
+      <div v-show="currentNav === 'motion'" class="h-full overflow-y-auto p-6 lg:p-8 max-w-7xl mx-auto w-full space-y-6">
+        
+        <div class="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h2 class="text-xl font-bold text-stone-900">动态视频工作区 (Motion Workspace)</h2>
+              <span class="text-xs bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full font-medium">
+                电影级平滑运镜引擎
+              </span>
+              <span class="text-xs bg-stone-100 text-stone-700 border border-stone-200 px-2.5 py-0.5 rounded-full font-medium">
+                9:16 竖屏电商短视频
+              </span>
+            </div>
+            <p class="text-xs text-stone-500 mt-1">让商业海报秒变带货短片：毫秒级平滑运镜插值、思源黑体卖点花字、胶囊标签与渐入淡出动效合成。</p>
+          </div>
+
+          <div class="flex items-center gap-3">
+            <button @click="generateMotionVideoDirect" :disabled="isGeneratingMotion || !motionSourceImage" 
+                    class="px-5 py-2 text-xs font-medium bg-amber-500 hover:bg-amber-600 text-white rounded-xl transition shadow-sm disabled:opacity-50 flex items-center gap-1.5">
+              <span v-if="isGeneratingMotion" class="animate-spin">⏳</span>
+              <span>{{ isGeneratingMotion ? '运镜动画合成中...' : '🎬 开始合成运镜短视频' }}</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          
+          <!-- 左侧配置表单 (5列) -->
+          <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm space-y-5">
+            
+            <!-- 底图路径 -->
+            <div>
+              <div class="flex items-center justify-between mb-1.5">
+                <label class="block text-xs font-bold text-stone-700">1. 运镜海报底图</label>
+                <button @click="fillMotionDemo" class="text-[11px] text-amber-700 hover:text-amber-800 underline">
+                  填入男香示例模板
+                </button>
+              </div>
+              <div class="flex gap-2">
+                <input v-model="motionSourceImage" type="text" placeholder="输入海报图片URL或从海报工作区流转..." 
+                       class="flex-1 bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono">
+                <label class="px-3 py-2 text-xs bg-stone-900 hover:bg-stone-800 text-white rounded-xl cursor-pointer shrink-0 flex items-center gap-1 shadow-2xs transition">
+                  <span>📤 上传底图</span>
+                  <input type="file" accept="image/*" class="hidden" @change="uploadLocalMotionImage">
+                </label>
+                <button @click="currentNav = 'visual'" class="px-3 py-2 text-xs bg-stone-100 hover:bg-stone-200 text-stone-700 rounded-xl border border-stone-200 shrink-0">
+                  去海报区
+                </button>
+              </div>
+              <div v-if="motionSourceImage" class="mt-2.5 h-24 rounded-xl overflow-hidden border border-stone-200 bg-stone-900 flex items-center justify-center p-1">
+                <img :src="motionSourceImage" alt="底图预览" class="max-h-20 w-auto object-contain rounded">
+              </div>
+            </div>
+
+            <!-- 运镜模式选择 -->
+            <div>
+              <label class="block text-xs font-bold text-stone-700 mb-2">2. 选择运镜轨迹模式</label>
+              <div class="grid grid-cols-2 gap-2 text-xs">
+                <button v-for="m in [
+                  { id: 'dolly_in', name: '缓入推进 (Dolly-in)', desc: '平滑向内推进，聚焦核心卖点' },
+                  { id: 'pan_left', name: '左扫横移 (Pan-left)', desc: '水平从右向左电影级横移' },
+                  { id: 'pan_right', name: '右扫横移 (Pan-right)', desc: '水平从左向右平滑扫视' },
+                  { id: 'dynamic_float', name: '微呼吸动效 (Float)', desc: '轻盈悬浮律动，生命力强' }
+                ]" :key="m.id"
+                        @click="motionType = m.id"
+                        class="p-2.5 rounded-xl border text-left transition"
+                        :class="motionType === m.id ? 'border-amber-500 bg-amber-50 text-amber-900 font-bold' : 'border-stone-200 hover:bg-stone-50 text-stone-600'">
+                  <div class="text-xs">{{ m.name }}</div>
+                  <div class="text-[10px] text-stone-400 mt-0.5 font-normal">{{ m.desc }}</div>
+                </button>
+              </div>
+            </div>
+
+            <!-- 花字字幕设置 -->
+            <div class="space-y-3">
+              <label class="block text-xs font-bold text-stone-700 mb-1">3. 电商卖点花字字幕 (可选)</label>
+              <input v-model="motionTitle" type="text" placeholder="主标题花字（如：黑曜石冷香极境）" 
+                     class="w-full bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500">
+              <input v-model="motionSubtitle" type="text" placeholder="副标题利益点（如：24小时持久留香 · 专属高冷范）" 
+                     class="w-full bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500">
+              <input v-model="motionTags" type="text" placeholder="标签气泡（逗号分隔，如：专柜同香, 新品首发, 热卖爆款）" 
+                     class="w-full bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500">
+            </div>
+
+          </div>
+
+          <!-- 右侧视频展示区 (7列) -->
+          <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col justify-between space-y-4">
+            <div>
+              <div class="flex items-center justify-between pb-3 border-b border-stone-100 text-xs">
+                <span class="font-bold text-stone-800">运镜短视频播放预览</span>
+                <span v-if="motionResultUrl" class="text-emerald-600 font-medium">✓ 9:16 竖屏 H.264 视频已生成</span>
+                <span v-else class="text-stone-400">等待合成</span>
+              </div>
+
+              <!-- 播放器框 -->
+              <div class="mt-4 rounded-2xl overflow-hidden border border-stone-800 bg-black flex items-center justify-center min-h-[380px] p-2">
+                <div v-if="isGeneratingMotion" class="text-center text-stone-400 space-y-3">
+                  <div class="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div class="text-xs">本地运镜引擎正在渲染 H.264 视频并叠加花字...</div>
+                </div>
+                <video v-else-if="motionResultUrl" :src="motionResultUrl" controls class="max-h-[460px] w-auto rounded-xl shadow-lg"></video>
+                <div v-else class="text-center text-stone-500 space-y-2">
+                  <span class="text-4xl">🎬</span>
+                  <div class="text-xs">选定底图与运镜模式后，点击合成按钮即可秒级预览短视频</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 底部下载操作条 -->
+            <div v-if="motionResultUrl" class="pt-3 border-t border-stone-100 flex items-center justify-between">
+              <span class="text-xs text-stone-500 font-mono">标准 9:16 竖屏 MP4 格式</span>
+              <a :href="motionResultUrl" download="ecommerce_motion.mp4" class="px-5 py-2 text-xs font-medium bg-stone-900 hover:bg-stone-800 text-white rounded-xl transition shadow-sm flex items-center gap-1.5">
+                <span>⬇️</span>
+                <span>下载短视频成品 (MP4)</span>
+              </a>
+            </div>
+
+          </div>
+
+        </div>
+
+        </div>
+
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    const { createApp, ref, computed, nextTick, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        // 核心导航：默认首页为 FirstPage 创作总览中心
+        const currentNav = ref('first_page');
+
+        // ================= 视图 0：Omni Hub (FirstPage) 协同调度中心 =================
+        const STORAGE_KEY_SESSIONS = 'omniflow_chat_sessions_v1';
+        const isSessionPanelOpen = ref(true);
+        const sessions = ref([]);
+        const currentSessionId = ref('');
+
+        const createDefaultSession = () => {
+          const id = 'session_' + Date.now();
+          const now = new Date();
+          const timeStr = `${now.getMonth() + 1}月${now.getDate()}日 ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+          return {
+            id,
+            title: '新对话',
+            createdAt: timeStr,
+            updatedAt: Date.now(),
+            messages: []
+          };
+        };
+
+        const loadSessions = () => {
+          try {
+            const saved = localStorage.getItem(STORAGE_KEY_SESSIONS);
+            if (saved) {
+              const parsed = JSON.parse(saved);
+              if (Array.isArray(parsed) && parsed.length > 0) {
+                sessions.value = parsed;
+                currentSessionId.value = parsed[0].id;
+                return;
+              }
+            }
+          } catch (e) {
+            console.warn('加载历史会话失败:', e);
+          }
+          const initS = createDefaultSession();
+          sessions.value = [initS];
+          currentSessionId.value = initS.id;
+        };
+
+        const saveSessions = () => {
+          try {
+            localStorage.setItem(STORAGE_KEY_SESSIONS, JSON.stringify(sessions.value));
+          } catch (e) {
+            console.warn('持久化保存会话失败:', e);
+          }
+        };
+
+        // 当前活跃会话
+        const currentSession = computed(() => {
+          let s = sessions.value.find(item => item.id === currentSessionId.value);
+          if (!s && sessions.value.length > 0) {
+            s = sessions.value[0];
+            currentSessionId.value = s.id;
+          }
+          return s || null;
+        });
+
+        // chatMessages 映射代理，保证既有代码与模板平滑无感知兼容
+        const chatMessages = computed({
+          get: () => currentSession.value ? currentSession.value.messages : [],
+          set: (newMsgs) => {
+            if (currentSession.value) {
+              currentSession.value.messages = newMsgs;
+              currentSession.value.updatedAt = Date.now();
+              saveSessions();
+            }
+          }
+        });
+
+        const userInputText = ref('');
+        const isAiResponding = ref(false);
+        const chatScrollBox = ref(null);
+
+        // 新建对话
+        const createNewSession = () => {
+          if (currentSession.value && currentSession.value.messages.length === 0) {
+            userInputText.value = '';
+            nextTick(() => {
+              const ta = document.querySelector('textarea');
+              if (ta) ta.focus();
+            });
+            return;
+          }
+          const newS = createDefaultSession();
+          sessions.value.unshift(newS);
+          currentSessionId.value = newS.id;
+          userInputText.value = '';
+          saveSessions();
+          nextTick(() => {
+            const ta = document.querySelector('textarea');
+            if (ta) ta.focus();
+          });
+        };
+
+        // 切换会话
+        const switchSession = (id) => {
+          if (currentSessionId.value === id) return;
+          currentSessionId.value = id;
+          userInputText.value = '';
+          saveSessions();
+          scrollToBottom();
+        };
+
+        // 删除会话
+        const deleteSession = (id, event) => {
+          if (event) event.stopPropagation();
+          const idx = sessions.value.findIndex(s => s.id === id);
+          if (idx === -1) return;
+          sessions.value.splice(idx, 1);
+          if (sessions.value.length === 0) {
+            const newS = createDefaultSession();
+            sessions.value = [newS];
+            currentSessionId.value = newS.id;
+          } else if (currentSessionId.value === id) {
+            currentSessionId.value = sessions.value[0].id;
+          }
+          saveSessions();
+        };
+
+        // 重命名会话
+        const renameSession = (id, event) => {
+          if (event) event.stopPropagation();
+          const s = sessions.value.find(item => item.id === id);
+          if (!s) return;
+          const newTitle = prompt('请输入新的会话标题：', s.title);
+          if (newTitle && newTitle.trim()) {
+            s.title = newTitle.trim().slice(0, 30);
+            saveSessions();
+          }
+        };
+
+        // 清空全部历史会话
+        const clearAllSessions = () => {
+          if (!confirm('确定要清空全部历史会话吗？此操作不可恢复。')) return;
+          const newS = createDefaultSession();
+          sessions.value = [newS];
+          currentSessionId.value = newS.id;
+          saveSessions();
+        };
+
+        // 按时间维度分组历史列表
+        const groupedSessions = computed(() => {
+          const today = [];
+          const previous7Days = [];
+          const older = [];
+          const now = Date.now();
+          const oneDay = 24 * 60 * 60 * 1000;
+          const sevenDays = 7 * oneDay;
+
+          for (const s of sessions.value) {
+            const diff = now - (s.updatedAt || now);
+            if (diff < oneDay) {
+              today.push(s);
+            } else if (diff < sevenDays) {
+              previous7Days.push(s);
+            } else {
+              older.push(s);
+            }
+          }
+          return { today, previous7Days, older };
+        });
+
+        // Context Window 统计与小圆环指示器 (Gemini 3.8 Flash 1M Tokens 窗口)
+        const contextTokens = computed(() => {
+          let chars = 650; // 基础 system prompt 与 multi-agent 编排预留
+          for (const m of chatMessages.value) {
+            chars += (m.content || '').length;
+          }
+          if (userInputText.value) {
+            chars += userInputText.value.length;
+          }
+          return Math.round(chars * 1.3);
+        });
+
+        const contextUsagePercent = computed(() => {
+          const pct = (contextTokens.value / 1000000) * 100;
+          return pct < 0.1 ? 0.1 : Number(pct.toFixed(2));
+        });
+
+        const contextRingProgress = computed(() => {
+          const raw = (contextTokens.value / 1000000) * 100;
+          return Math.min(100, Math.max(3.5, raw * 10));
+        });
+
+        const contextUsageText = computed(() => {
+          if (contextTokens.value < 1000) {
+            return `${contextTokens.value} / 1M`;
+          }
+          return `${(contextTokens.value / 1000).toFixed(1)}k / 1M`;
+        });
+
+        const promptPillOptions = [
+          {
+            icon: '⚡',
+            title: '爆款全案一句话生成',
+            desc: '打包生成口播脚本、商业海报与5秒平滑运镜短片',
+            text: '帮我生成一套黑曜石男士淡雅冷香的带货全案，主打24小时持久木质香与高冷商务气场，包含口播、海报与5秒运镜短视频。'
+          },
+          {
+            icon: '🎨',
+            title: '商业级主图海报渲染',
+            desc: '大牌摄影棚布光，极度清晰材质与通透高级感',
+            text: '请为一款多肽抗老紧致精华液，设计一张极具大牌质感的商业海报提示词，要求水感凝露通透质地与冷色调大理石底座。'
+          },
+          {
+            icon: '📊',
+            title: 'FABE 话术与合规风控',
+            desc: '系统拆解特征、优势、利益与证据，排查极限词',
+            text: '请为一款高颜值保温杯，按 FABE 法则系统拆解带货话术框架，排查可能触碰新广告法的违规词并给出合规建议。'
+          },
+          {
+            icon: '🎬',
+            title: '电影级运镜短视频脚本',
+            desc: '前3秒视觉钩子、痛点反转与平滑推镜头设计',
+            text: '请构思一条 15 秒轻奢机械腕表短视频带货脚本，包含开场抓人镜头、痛点共鸣与配套缓入推进 (Dolly-in) 运镜。'
+          }
+        ];
+
+        const scrollToBottom = () => {
+          nextTick(() => {
+            if (chatScrollBox.value) {
+              chatScrollBox.value.scrollTop = chatScrollBox.value.scrollHeight;
+            }
+          });
+        };
+
+        // Markdown 富文本安全渲染函数
+        const renderMarkdown = (text) => {
+          if (!text) return '';
+          if (window.marked && typeof window.marked.parse === 'function') {
+            try {
+              return window.marked.parse(text, { breaks: true, gfm: true });
+            } catch (e) {
+              console.warn('marked parse error:', e);
+            }
+          }
+          return text
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/^### (.*$)/gim, '<h3 class="font-bold text-stone-900 mt-2 mb-1 text-sm">$1</h3>')
+            .replace(/^## (.*$)/gim, '<h2 class="font-bold text-stone-900 mt-2.5 mb-1.5 text-base">$1</h2>')
+            .replace(/^# (.*$)/gim, '<h1 class="font-bold text-stone-900 mt-3 mb-2 text-lg">$1</h1>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\*(.*?)\*/g, '<em>$1</em>')
+            .replace(/`([^`]+)`/g, '<code class="bg-stone-100 text-brand-700 px-1 py-0.5 rounded text-[11px] font-mono">$1</code>')
+            .replace(/\n/g, '<br>');
+        };
+
+        const copyMessage = (text) => {
+          if (!text) return;
+          navigator.clipboard.writeText(text);
+          alert('✅ 已成功复制到剪贴板！');
+        };
+
+        const sendMessage = async () => {
+          const text = userInputText.value.trim();
+          if (!text || isAiResponding.value) return;
+
+          const now = new Date();
+          const timeStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+          // 追加用户消息
+          chatMessages.value.push({
+            role: 'user',
+            content: text,
+            time: timeStr
+          });
+
+          // 如果会话还是“新对话”，依据第一句话自动命名
+          if (currentSession.value && (currentSession.value.title === '新对话' || !currentSession.value.title)) {
+            currentSession.value.title = text.slice(0, 18) + (text.length > 18 ? '...' : '');
+          }
+          if (currentSession.value) {
+            currentSession.value.updatedAt = Date.now();
+          }
+          saveSessions();
+
+          userInputText.value = '';
+          isAiResponding.value = true;
+          scrollToBottom();
+
+          try {
+            const history = chatMessages.value.map(m => ({ role: m.role, content: m.content }));
+            const res = await fetch('/api/chat', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                messages: history,
+                provider: 'gemini',
+                model: 'gemini-3.8-flash'
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              chatMessages.value.push({
+                role: 'assistant',
+                content: data.reply || '已为您生成带货创作方案。',
+                model: data.model || 'Gemini 3.8 Flash (Master Agent)',
+                cards: data.cards || null,
+                time: timeStr
+              });
+              if (currentSession.value) {
+                currentSession.value.updatedAt = Date.now();
+              }
+              saveSessions();
+            } else {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || `HTTP ${res.status}`);
+            }
+          } catch (e) {
+            console.error('Omni Hub 对话异常:', e);
+            chatMessages.value.push({
+              role: 'assistant',
+              content: `【连接提示】请求 Omni Hub 智能服务失败：${e.message || '网络异常'}。`,
+              model: '系统通信异常',
+              time: timeStr
+            });
+            saveSessions();
+          } finally {
+            isAiResponding.value = false;
+            scrollToBottom();
+          }
+        };
+
+        const handleEnterPress = (e) => {
+          if (e.shiftKey) return;
+          sendMessage();
+        };
+
+        const sendQuickPrompt = (txt) => {
+          userInputText.value = txt;
+          sendMessage();
+        };
+
+        const clearChat = () => {
+          if (currentSession.value) {
+            currentSession.value.messages = [];
+            currentSession.value.title = '新对话';
+            currentSession.value.updatedAt = Date.now();
+            saveSessions();
+          }
+        };
+
+        // ================= 跨工作区流转协同方法 =================
+        const sendToVisual = (imgUrl = '', prompt = '') => {
+          if (imgUrl) visualResultUrl.value = imgUrl;
+          if (prompt) {
+            visualPrompt.value = prompt;
+            visualProductDesc.value = prompt.slice(0, 50);
+          }
+          currentNav.value = 'visual';
+        };
+
+        const sendToMotion = (imgUrl = '', title = '', subtitle = '', tags = '', videoUrl = '') => {
+          if (imgUrl) motionSourceImage.value = imgUrl;
+          if (title) {
+            motionTitle.value = title;
+          } else if (!motionTitle.value && visualProductDesc.value) {
+            motionTitle.value = visualProductDesc.value.slice(0, 12);
+          }
+          if (subtitle) motionSubtitle.value = subtitle;
+          if (tags) motionTags.value = tags;
+          if (videoUrl) motionResultUrl.value = videoUrl;
+          currentNav.value = 'motion';
+        };
+
+        const sendToScript = (scriptData = null) => {
+          if (scriptData) {
+            scriptResult.value = scriptData;
+            if (scriptData.compliance_violations) {
+              complianceViolations.value = scriptData.compliance_violations;
+            }
+          }
+          currentNav.value = 'script';
+        };
+
+        // ================= 视图 1：视觉海报工作区 =================
+        const podiumOptions = {
+          acrylic: { name: '水波亚克力', icon: '💧', prompt: 'transparent clear acrylic podium over crystal clear shallow water ripples, subtle caustic reflections' },
+          basalt: { name: '黑色火山石', icon: '🌋', prompt: 'rough raw volcanic basalt rock slab pedestal, organic mineral textures' },
+          cement: { name: '微水泥几何', icon: '🏛️', prompt: 'smooth matte microcement geometric cubic pedestal, clean lines' },
+          wood: { name: '天然暖原木', icon: '🪵', prompt: 'natural light oak wood surface with delicate grain, folded beige linen cloth' },
+          mirror: { name: '镜面黑曜石', icon: '🪞', prompt: 'polished glossy black reflection mirror surface, clean reflection' },
+          white: { name: '极简纯白底', icon: '◻️', prompt: 'seamless clean pure white commercial studio backdrop with soft contact shadows' }
+        };
+
+        const lightingOptions = {
+          softbox: { name: '商业柔光箱', icon: '💡', prompt: 'diffused commercial studio dual softbox lighting with even gradient shadows' },
+          rim: { name: '侧逆轮廓光', icon: '🔦', prompt: 'dramatic cool blue rim lighting sculpting edges and metallic contours' },
+          sunbeam: { name: '晨曦自然光', icon: '☀️', prompt: 'bright morning sunlight streaming through window with Tyndall rays and water caustics' },
+          spotlight: { name: '暗调聚光灯', icon: '🎯', prompt: 'focused overhead spotlight with dark cinematic shadow falloff' }
+        };
+
+        const framingOptions = {
+          hero: { name: '45°立体主图', icon: '📐', desc: '标准爆款主图', prompt: 'hero three-quarter commercial perspective, balanced product placement' },
+          flatlay: { name: '90°俯拍平铺', icon: '🔲', desc: '开箱陈列/全家福', prompt: 'top-down 90 degree flat lay perspective, symmetrical organized composition' },
+          macro: { name: '极致微距特写', icon: '🔍', desc: '细节纹理与材质', prompt: 'extreme macro close-up detail shot, shallow depth of field, razor-sharp textures' },
+          lifestyle: { name: '生活场景融入', icon: '🛋️', desc: '真实沉浸氛围', prompt: 'contextual lifestyle scene, authentic atmospheric commercial environment' }
+        };
+
+        const ratioOptions = {
+          '1:1': { name: '电商方图', size: '1024x1024', tag: '淘宝/天猫/京东主图' },
+          '3:4': { name: '种草竖图', size: '768x1024', tag: '小红书/美妆爆款' },
+          '9:16': { name: '视频长图', size: '1024x1792', tag: '短视频海报/运镜联动' },
+          '16:9': { name: '横版Banner', size: '1792x1024', tag: '电商轮播/品牌封面' }
+        };
+
+        const visualIndustryPresets = [
+          {
+            id: 'skincare',
+            name: '水凝轻奢 · 美妆护肤',
+            icon: '💧',
+            desc: '晨曦水波 / 细密凝露 / 通透折射',
+            productDesc: '高定玻尿酸修护精华液，晶莹通透玻璃瓶身与银色泵头',
+            podium: 'acrylic',
+            lighting: 'sunbeam',
+            framing: 'hero',
+            ratio: '3:4',
+            style: '水凝轻奢',
+            prompt: 'Luxury skincare hydrating serum bottle made of crystal clear frosted glass with silver metallic pump, standing on transparent clear acrylic podium over shallow undulating water surface, gentle water ripples and caustics, soft morning sunlight casting Tyndall rays through water, microscopic condensation droplets on glass, high-end commercial cosmetic advertisement, 8k resolution, photorealistic'
+          },
+          {
+            id: 'mens_fragrance',
+            name: '暗夜曜石 · 男香奢品',
+            icon: '🌌',
+            desc: '暗调聚光 / 黑色火山岩 / 冷调轮廓',
+            productDesc: '黑曜石沉香男士淡香水，重工黑玻璃瓶身与枪灰色金属盖',
+            podium: 'basalt',
+            lighting: 'rim',
+            framing: 'hero',
+            ratio: '1:1',
+            style: '暗夜曜石',
+            prompt: 'Premium luxury men\'s cologne fragrance bottle in heavy black obsidian glass with brushed gunmetal cap, sitting on rough dark volcanic basalt stone slab, moody dark cinematic studio background, dramatic cool blue and silver rim lighting sculpting the glass contours, crisp shadow falloff, Vogue commercial still life, 8k resolution'
+          },
+          {
+            id: 'digital_3c',
+            name: '极客几何 · 3C数码',
+            icon: '⚡',
+            desc: '柔光漫射 / 微水泥几何 / 科技悬浮',
+            productDesc: '降噪无线入耳式耳机与充电仓，哑光深空灰航空铝合金',
+            podium: 'cement',
+            lighting: 'softbox',
+            framing: 'hero',
+            ratio: '1:1',
+            style: '极客几何',
+            prompt: 'Futuristic wireless noise-cancelling earbuds and open matte case, subtle anti-gravity levitation above a minimalist microcement geometric cubic podium, diffused dual commercial studio softbox lighting, clean smooth shadow gradients, aerospace aluminum matte finish, Apple product launch commercial aesthetic, 8k'
+          },
+          {
+            id: 'jewelry_watch',
+            name: '璀璨星芒 · 珠宝名表',
+            icon: '✨',
+            desc: '微距特写 / 镜面黑台 / 棱镜星芒',
+            productDesc: '18K白金镂空机械腕表，蓝宝石镜面与精雕陀飞轮游丝',
+            podium: 'mirror',
+            lighting: 'spotlight',
+            framing: 'macro',
+            ratio: '1:1',
+            style: '璀璨星芒',
+            prompt: 'Macro extreme close-up of an exquisite 18k white gold tourbillon mechanical wristwatch, sapphire crystal glass with exposed oscillating balance wheel, resting on polished black mirror reflection plate, focused overhead spotlight creating brilliant prismatic starburst glints on beveled metallic gears, dark luxury atmosphere, 8k'
+          },
+          {
+            id: 'fresh_tea',
+            name: '晨露鲜萃 · 轻食茶饮',
+            icon: '🍃',
+            desc: '天然原木 / 晶莹冰块冷雾 / 晨光透射',
+            productDesc: '冷萃金萱乌龙茶玻璃瓶，表面凝结冰爽水雾与晶莹冰块',
+            podium: 'wood',
+            lighting: 'sunbeam',
+            framing: 'hero',
+            ratio: '3:4',
+            style: '晨露鲜萃',
+            prompt: 'Chilled cold brew artisan oolong tea in condensation-covered minimalist glass bottle, surrounded by crystal clear melting ice cubes and organic tea leaves, natural warm light oak wood surface with folded beige linen, bright morning sunlight backlit through amber liquid showing glowing translucency, refreshing cold mist vapor, fresh commercial photography, 8k'
+          },
+          {
+            id: 'home_scent',
+            name: '暖阳日杂 · 家居香薰',
+            icon: '🕯️',
+            desc: '生活融入 / 亚麻干花 / 暖杏色丁达尔',
+            productDesc: '极简白瓷藤条香氛精油，棉麻桌布与尤加利干花',
+            podium: 'wood',
+            lighting: 'sunbeam',
+            framing: 'lifestyle',
+            ratio: '16:9',
+            style: '暖阳日杂',
+            prompt: 'A minimalist white ceramic reed aroma diffuser bottle with natural rattan sticks, placed on a sunlit wooden windowsill next to soft textured linen and dried eucalyptus branch, gentle morning breeze, warm golden sunbeam filtering through sheer curtains creating soft window shadows, cozy Nordic hygge living aesthetic, Kinfolk magazine style, 8k'
+          }
+        ];
+
+        // 响应式状态
+        const visualSelectedPreset = ref('skincare');
+        const visualProductDesc = ref('高定玻尿酸修护精华液，晶莹通透玻璃瓶身与银色泵头');
+        const visualPodium = ref('acrylic');
+        const visualLighting = ref('sunbeam');
+        const visualFraming = ref('hero');
+        const visualRatio = ref('3:4');
+        const visualPrompt = ref(visualIndustryPresets[0].prompt);
+        const visualStyle = ref('水凝轻奢');
+        const visualResultUrl = ref('');
+        const isGeneratingPoster = ref(false);
+        const lastGeneratedMeta = ref(null);
+
+        // 兼容原 visualInspirations 接口
+        const visualInspirations = visualIndustryPresets;
+        const applyVisualInspiration = (item) => {
+          selectIndustryPreset(item);
+        };
+
+        const selectIndustryPreset = (preset) => {
+          visualSelectedPreset.value = preset.id;
+          visualProductDesc.value = preset.productDesc;
+          visualPodium.value = preset.podium;
+          visualLighting.value = preset.lighting;
+          visualFraming.value = preset.framing;
+          visualRatio.value = preset.ratio;
+          visualStyle.value = preset.style;
+          visualPrompt.value = preset.prompt;
+        };
+
+        const setVisualDimension = (dim, key) => {
+          if (dim === 'podium') visualPodium.value = key;
+          if (dim === 'lighting') visualLighting.value = key;
+          if (dim === 'framing') visualFraming.value = key;
+          if (dim === 'ratio') visualRatio.value = key;
+          compilePrompt();
+        };
+
+        const compilePrompt = () => {
+          const desc = visualProductDesc.value.trim() || 'A high-end commercial product';
+          const podiumP = podiumOptions[visualPodium.value]?.prompt || '';
+          const lightingP = lightingOptions[visualLighting.value]?.prompt || '';
+          const framingP = framingOptions[visualFraming.value]?.prompt || '';
+          const ratioText = `aspect ratio ${visualRatio.value}`;
+          
+          visualPrompt.value = `Commercial product photography of ${desc}, resting on ${podiumP}, illuminated by ${lightingP}, ${framingP}, ${ratioText}, master studio lighting, sharp focus, 8k resolution, ultra-realistic commercial advertisement`;
+        };
+
+        const copyPrompt = async () => {
+          if (!visualPrompt.value) return;
+          try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              await navigator.clipboard.writeText(visualPrompt.value);
+            } else {
+              const ta = document.createElement('textarea');
+              ta.value = visualPrompt.value;
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+            }
+            alert('✓ 已复制商业摄影提示词至剪贴板！');
+          } catch (e) {
+            alert('复制成功！');
+          }
+        };
+
+        const generatePoster = async () => {
+          const p = visualPrompt.value.trim();
+          if (!p) {
+            alert('请先输入海报描述或提示词！');
+            return;
+          }
+          isGeneratingPoster.value = true;
+          try {
+            const res = await fetch('/api/generate-image', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                prompt: p,
+                style: visualStyle.value,
+                aspect_ratio: visualRatio.value,
+                provider: 'agnes'
+              })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.image_url) {
+                visualResultUrl.value = data.image_url;
+                lastGeneratedMeta.value = {
+                  aspect_ratio: data.aspect_ratio || visualRatio.value,
+                  size: data.size || ratioOptions[visualRatio.value]?.size || '1024x1024',
+                  engine: data.engine || 'Agnes Image 2.5 Flash'
+                };
+                return;
+              }
+            }
+            const errData = await res.json().catch(() => ({}));
+            alert(`海报生成失败: ${errData.error || 'HTTP ' + res.status}`);
+          } catch (e) {
+            console.error('海报生成异常:', e);
+            alert(`海报生成请求异常: ${e.message}`);
+          } finally {
+            isGeneratingPoster.value = false;
+          }
+        };
+
+        // ================= 视图 2：动态视频工作区 =================
+        const motionSourceImage = ref('');
+        const motionType = ref('dolly_in');
+        const motionTitle = ref('');
+        const motionSubtitle = ref('');
+        const motionTags = ref('');
+        const motionResultUrl = ref('');
+        const isGeneratingMotion = ref(false);
+
+        const fillMotionDemo = () => {
+          motionSourceImage.value = visualResultUrl.value || '/uploads/agnes_poster_1788753786.png';
+          motionType.value = 'dolly_in';
+          motionTitle.value = '黑曜石冷香极境';
+          motionSubtitle.value = '24小时持久留香 · 职场高冷气场';
+          motionTags.value = '男士冷香, 新品首发, 专柜同香';
+        };
+
+        const uploadLocalMotionImage = async (e) => {
+          const file = e.target.files[0];
+          if (!file) return;
+          const formData = new FormData();
+          formData.append('file', file);
+          try {
+            const res = await fetch('/api/upload-binary', {
+              method: 'POST',
+              body: formData
+            });
+            if (res.ok) {
+              const data = await res.json();
+              motionSourceImage.value = data.file_url || `/uploads/${data.filename}`;
+              alert(`✅ 本地底图上传成功：${file.name}`);
+            } else {
+              alert('上传底图失败，请检查网络');
+            }
+          } catch (err) {
+            alert(`上传异常: ${err.message}`);
+          }
+        };
+
+        const generateMotionVideoDirect = async () => {
+          if (!motionSourceImage.value.trim()) {
+            alert('请先指定运镜海报底图（输入图片URL、点击上传或从海报工作区流转）！');
+            return;
+          }
+          isGeneratingMotion.value = true;
+          try {
+            const res = await fetch('/api/motion-video/create', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                image_url: motionSourceImage.value.trim(),
+                motion_type: motionType.value,
+                title: motionTitle.value.trim(),
+                subtitle: motionSubtitle.value.trim(),
+                tags: motionTags.value.trim(),
+                aspect_ratio: '9:16',
+                duration: 4.0
+              })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.video_url) {
+                motionResultUrl.value = data.video_url;
+                return;
+              }
+            }
+            const errData = await res.json().catch(() => ({}));
+            alert(`视频合成失败: ${errData.error || 'HTTP ' + res.status}`);
+          } catch (e) {
+            console.error('视频合成异常:', e);
+            alert(`视频合成异常: ${e.message}`);
+          } finally {
+            isGeneratingMotion.value = false;
+          }
+        };
+
+        // ================= 视图 3：文案脚本工作区 =================
+        const scriptProductName = ref('');
+        const scriptHighlights = ref('');
+        const scriptTargetAudience = ref('');
+        const scriptTab = ref('oral');
+        const isGeneratingScript = ref(false);
+        const scriptResult = ref(null);
+        const complianceViolations = ref([]);
+
+        const fillScriptPreset = (type = 'perfume') => {
+          if (type === 'serum') {
+            scriptProductName.value = '时光多肽紧致抗老眼霜';
+            scriptHighlights.value = '蕴含高活性乙酰基六肽-8与高纯度玻色因，深层抚平眼周干纹细纹，专利微囊渗透技术，水感凝露质地清爽不闷脂肪粒，绝不添加酒精香精色素。';
+            scriptTargetAudience.value = '25-45岁熬夜党、初老抗皱需求女性与职场女性。';
+          } else if (type === 'cup') {
+            scriptProductName.value = '星空系列316L医用不锈钢保温杯';
+            scriptHighlights.value = '内胆采用医用级316L无缝一体钢，耐酸碱抗腐蚀，24小时长效锁温保冷，极简哑光磨砂喷塑工艺防滑耐磨，食品级硅胶密封圈滴水不漏。';
+            scriptTargetAudience.value = '注重生活品质的高校学生、办公室白领与自驾露营爱好者。';
+          } else {
+            scriptProductName.value = '黑曜石男士淡雅冷香水';
+            scriptHighlights.value = '24小时持久留香，瑞士奇华顿进口香精，前调意大利佛手柑与冷冽薄荷，中调雪松与粉红胡椒，尾调降龙涎香醚，温润贴肤不刺鼻，绝不含有害刺激成分。';
+            scriptTargetAudience.value = '25-35岁职场男士、商务会议通勤与周末轻奢社交。';
+          }
+        };
+
+        const generateScript = async () => {
+          if (!scriptProductName.value.trim()) {
+            alert('请先填写商品名称！');
+            return;
+          }
+          isGeneratingScript.value = true;
+          try {
+            const res = await fetch('/api/script/generate', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                product_name: scriptProductName.value.trim(),
+                highlights: scriptHighlights.value.trim(),
+                target_audience: scriptTargetAudience.value.trim()
+              })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              scriptResult.value = data;
+              complianceViolations.value = data.compliance_violations || [];
+              scriptTab.value = 'oral';
+              return;
+            }
+            const errData = await res.json().catch(() => ({}));
+            alert(`生成脚本失败: ${errData.error || 'HTTP ' + res.status}`);
+          } catch (e) {
+            console.error('脚本生成异常:', e);
+            alert(`脚本生成异常: ${e.message}`);
+          } finally {
+            isGeneratingScript.value = false;
+          }
+        };
+
+        const checkComplianceDirect = async () => {
+          const text = `${scriptProductName.value} ${scriptHighlights.value}`.trim();
+          if (!text) {
+            alert('请先输入商品名称或核心卖点！');
+            return;
+          }
+          try {
+            const res = await fetch('/api/script/check-compliance', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ text })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              complianceViolations.value = data.violations || [];
+              scriptTab.value = 'compliance';
+              alert(complianceViolations.value.length ? `🚨 检测到 ${complianceViolations.value.length} 处疑似违反广告法绝对化用语，已切换至风控清单！` : '✅ 卖点文字检测合格，未发现广告法违规词！');
+            }
+          } catch (e) {
+            console.error('合规检测失败:', e);
+            alert(`合规检测异常: ${e.message}`);
+          }
+        };
+
+        onMounted(() => {
+          loadSessions();
+        });
+
+        return {
+          currentNav,
+          // Omni Hub (FirstPage)
+          isSessionPanelOpen,
+          sessions,
+          currentSessionId,
+          currentSession,
+          groupedSessions,
+          createNewSession,
+          switchSession,
+          deleteSession,
+          renameSession,
+          clearAllSessions,
+          chatMessages,
+          userInputText,
+          isAiResponding,
+          chatScrollBox,
+          promptPillOptions,
+          sendMessage,
+          handleEnterPress,
+          sendQuickPrompt,
+          clearChat,
+          copyMessage,
+          renderMarkdown,
+          contextTokens,
+          contextUsagePercent,
+          contextRingProgress,
+          contextUsageText,
+          // 协同流转
+          sendToVisual,
+          sendToMotion,
+          sendToScript,
+          // 视觉海报工作区
+          visualPrompt,
+          visualStyle,
+          visualResultUrl,
+          isGeneratingPoster,
+          visualInspirations,
+          applyVisualInspiration,
+          generatePoster,
+          visualIndustryPresets,
+          visualSelectedPreset,
+          selectIndustryPreset,
+          visualProductDesc,
+          podiumOptions,
+          visualPodium,
+          lightingOptions,
+          visualLighting,
+          framingOptions,
+          visualFraming,
+          ratioOptions,
+          visualRatio,
+          setVisualDimension,
+          compilePrompt,
+          copyPrompt,
+          lastGeneratedMeta,
+          // 动态视频工作区
+          motionSourceImage,
+          motionType,
+          motionTitle,
+          motionSubtitle,
+          motionTags,
+          motionResultUrl,
+          isGeneratingMotion,
+          fillMotionDemo,
+          uploadLocalMotionImage,
+          generateMotionVideoDirect,
+          // 文案脚本工作区
+          scriptProductName,
+          scriptHighlights,
+          scriptTargetAudience,
+          scriptTab,
+          isGeneratingScript,
+          scriptResult,
+          complianceViolations,
+          fillScriptPreset,
+          generateScript,
+          checkComplianceDirect
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
