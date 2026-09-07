@@ -75,9 +75,14 @@
       background-color: #9d4f32;
       color: #ffffff;
     }
-    /* Markdown 优雅排版样式 */
+    /* ======================================================== */
+    /* 🌟 Markdown 顶级专业排版系统 (Table / Image / Typography)   */
+    /* ======================================================== */
     .chat-markdown-content {
-      line-height: 1.7;
+      line-height: 1.75;
+      font-size: 0.8125rem; /* 13px */
+      color: #292524;
+      word-break: break-word;
     }
     .chat-markdown-content h1, 
     .chat-markdown-content h2, 
@@ -85,63 +90,66 @@
     .chat-markdown-content h4 {
       font-weight: 700;
       color: #1c1917;
-      margin-top: 0.6rem;
-      margin-bottom: 0.3rem;
+      margin-top: 0.85rem;
+      margin-bottom: 0.35rem;
+      letter-spacing: -0.015em;
     }
-    .chat-markdown-content h1 { font-size: 1.15rem; }
+    .chat-markdown-content h1 { font-size: 1.15rem; border-bottom: 1px solid #f0eeec; padding-bottom: 0.3rem; }
     .chat-markdown-content h2 { font-size: 1.05rem; }
     .chat-markdown-content h3 { font-size: 0.95rem; }
     .chat-markdown-content h4 { font-size: 0.875rem; }
     .chat-markdown-content p {
-      margin-bottom: 0.45rem;
+      margin-bottom: 0.55rem;
     }
     .chat-markdown-content p:last-child {
       margin-bottom: 0;
     }
     .chat-markdown-content ul {
       list-style-type: disc;
-      padding-left: 1.25rem;
-      margin-bottom: 0.45rem;
+      padding-left: 1.35rem;
+      margin: 0.45rem 0;
     }
     .chat-markdown-content ol {
       list-style-type: decimal;
-      padding-left: 1.25rem;
-      margin-bottom: 0.45rem;
+      padding-left: 1.35rem;
+      margin: 0.45rem 0;
     }
     .chat-markdown-content li {
-      margin-bottom: 0.2rem;
+      margin-bottom: 0.25rem;
+      padding-left: 0.15rem;
     }
     .chat-markdown-content strong {
       font-weight: 600;
       color: #0c0a09;
     }
     .chat-markdown-content blockquote {
-      border-left: 3px solid #b45f3f;
-      padding-left: 0.75rem;
+      border-left: 3px solid #9d4f32;
+      padding: 0.5rem 0.85rem;
       color: #57534e;
-      margin: 0.4rem 0;
+      margin: 0.6rem 0;
       background-color: #fcf8f5;
-      padding-top: 0.2rem;
-      padding-bottom: 0.2rem;
-      border-radius: 0 0.5rem 0.5rem 0;
+      border-radius: 0 0.625rem 0.625rem 0;
+      font-style: normal;
     }
     .chat-markdown-content code {
       font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
       font-size: 0.85em;
       background-color: #f5f5f4;
-      color: #b45f3f;
-      padding: 0.15rem 0.35rem;
+      color: #9d4f32;
+      padding: 0.15rem 0.4rem;
       border-radius: 0.375rem;
       border: 1px solid #e7e5e4;
     }
     .chat-markdown-content pre {
       background-color: #1c1917;
       color: #f5f5f4;
-      padding: 0.75rem;
-      border-radius: 0.75rem;
+      padding: 0.85rem 1rem;
+      border-radius: 0.875rem;
       overflow-x: auto;
-      margin: 0.5rem 0;
+      margin: 0.65rem 0;
       font-size: 0.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.12);
     }
     .chat-markdown-content pre code {
       background: transparent;
@@ -149,12 +157,98 @@
       padding: 0;
       border: none;
     }
+    .chat-markdown-content hr {
+      border: none;
+      border-top: 1px dashed #e7e5e4;
+      margin: 0.85rem 0;
+    }
+
+    /* ======================================================== */
+    /* 🌟 表格 (Table) 现代化专业排版系统                       */
+    /* ======================================================== */
+    .chat-markdown-content .table-container,
+    .chat-markdown-content > table {
+      width: 100%;
+      margin: 0.75rem 0;
+    }
+    .chat-markdown-content table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border: 1px solid #e7e5e4;
+      border-radius: 0.75rem;
+      overflow: hidden;
+      font-size: 0.78rem;
+      background-color: #ffffff;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    }
+    .chat-markdown-content thead {
+      background: linear-gradient(180deg, #faf8f6 0%, #f4f0ec 100%);
+    }
+    .chat-markdown-content th {
+      padding: 0.65rem 0.85rem;
+      font-weight: 600;
+      color: #44403c;
+      text-align: left;
+      border-bottom: 2px solid #e7e5e4;
+      border-right: 1px solid #e7e5e4;
+      white-space: nowrap;
+      letter-spacing: 0.01em;
+    }
+    .chat-markdown-content th:last-child {
+      border-right: none;
+    }
+    .chat-markdown-content td {
+      padding: 0.6rem 0.85rem;
+      color: #44403c;
+      border-bottom: 1px solid #f0eeec;
+      border-right: 1px solid #f0eeec;
+      line-height: 1.5;
+    }
+    .chat-markdown-content td:last-child {
+      border-right: none;
+    }
+    .chat-markdown-content tbody tr:last-child td {
+      border-bottom: none;
+    }
+    .chat-markdown-content tbody tr:nth-child(even) {
+      background-color: #fdfbf9;
+    }
+    .chat-markdown-content tbody tr:hover {
+      background-color: #f7f1ec;
+      transition: background-color 0.15s ease;
+    }
+
+    /* ======================================================== */
+    /* 🌟 图片 (Image) 商业视觉与全屏灯箱交互排版               */
+    /* ======================================================== */
+    .chat-markdown-content figure {
+      margin: 0.75rem auto;
+      text-align: center;
+    }
     .chat-markdown-content img {
       max-width: 100%;
-      border-radius: 0.75rem;
-      margin: 0.5rem 0;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      max-height: 420px;
+      object-fit: contain;
+      border-radius: 0.875rem;
+      margin: 0.65rem auto;
+      display: block;
+      box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.1), 0 2px 6px -2px rgba(0, 0, 0, 0.05);
       border: 1px solid #e7e5e4;
+      background-color: #1c1917;
+      transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+      cursor: zoom-in;
+    }
+    .chat-markdown-content img:hover {
+      transform: scale(1.015);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.18);
+    }
+    .chat-markdown-content figcaption {
+      font-size: 0.75rem;
+      color: #78716c;
+      margin-top: 0.35rem;
+      text-align: center;
+      font-family: ui-monospace, SFMono-Regular, monospace;
     }
   </style>
 </head>
@@ -454,7 +548,7 @@
                       <a :href="msg.cards.poster.image_url" target="_blank" class="text-brand-600 hover:text-brand-700 underline text-[11px]">查看原图 ↗</a>
                     </div>
                     <div class="rounded-xl overflow-hidden border border-stone-200 bg-stone-950 max-h-72 flex items-center justify-center">
-                      <img :src="msg.cards.poster.image_url" alt="海报" class="max-h-68 w-auto object-contain rounded-lg shadow-sm">
+                      <img :src="msg.cards.poster.image_url" alt="海报" @click="openImagePreview(msg.cards.poster.image_url)" class="max-h-68 w-auto object-contain rounded-lg shadow-sm cursor-zoom-in hover:opacity-95 transition active:scale-98">
                     </div>
                     <div class="flex items-center justify-end gap-2 pt-1 flex-wrap">
                       <button @click="sendToVisual(msg.cards.poster.image_url)" class="px-3 py-1.5 bg-white hover:bg-stone-100 text-stone-700 border border-stone-200 rounded-lg text-[11px] font-medium transition flex items-center gap-1 shadow-2xs">
@@ -1174,6 +1268,41 @@
 
     </main>
 
+    <!-- 🌟 全屏高清大图灯箱预览 (Image Lightbox Modal) -->
+    <div v-if="previewImageUrl" 
+         @click="closeImagePreview"
+         class="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 select-none transition-all duration-200">
+      <div class="relative max-w-5xl max-h-[92vh] flex flex-col items-center" @click.stop>
+        <!-- 悬浮右上角关闭按钮 -->
+        <button @click="closeImagePreview" 
+                title="关闭预览 (ESC)"
+                class="absolute -top-11 right-0 w-8 h-8 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center text-sm font-bold transition shadow-lg">
+          ✕
+        </button>
+        <!-- 图片容器 -->
+        <div class="rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black/40 max-h-[82vh] flex items-center justify-center">
+          <img :src="previewImageUrl" alt="全屏大图预览" class="max-h-[80vh] w-auto object-contain rounded-xl">
+        </div>
+        <!-- 底部快捷操作条 -->
+        <div class="mt-3.5 flex items-center gap-3">
+          <a :href="previewImageUrl" target="_blank" 
+             class="px-4 py-2 bg-white/15 hover:bg-white/25 text-white rounded-xl text-xs font-medium backdrop-blur-sm transition flex items-center gap-1.5 border border-white/20 shadow-xs">
+            <span>↗</span>
+            <span>在新窗口打开原图</span>
+          </a>
+          <a :href="previewImageUrl" download="omniflow_preview.png" 
+             class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-medium transition flex items-center gap-1.5 shadow-md">
+            <span>⬇️</span>
+            <span>保存下载图片</span>
+          </a>
+          <button @click="closeImagePreview" 
+                  class="px-4 py-2 bg-stone-800 hover:bg-stone-700 text-stone-300 rounded-xl text-xs font-medium transition border border-white/10">
+            关闭 (ESC)
+          </button>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <script>
@@ -1409,12 +1538,39 @@
           });
         };
 
-        // Markdown 富文本安全渲染函数
+        // ================= 🌟 大图灯箱与富文本排版增强 =================
+        const previewImageUrl = ref('');
+        const openImagePreview = (url) => {
+          if (url) previewImageUrl.value = url;
+        };
+        const closeImagePreview = () => {
+          previewImageUrl.value = '';
+        };
+        window.__openImageModal = openImagePreview;
+
+        // 配置 marked 自定义 renderer
+        if (window.marked) {
+          const customRenderer = new marked.Renderer();
+          // 表格定制：自动注入 overflow-x-auto 响应式滚动外壳与现代极简阴影
+          customRenderer.table = function(header, body) {
+            return `<div class="table-container overflow-x-auto my-3 rounded-xl border border-stone-200 shadow-2xs bg-white codex-scrollbar"><table class="w-full text-left border-collapse">${header}${body}</table></div>`;
+          };
+          // 图片定制：居中、限高、支持图注并绑定点击打开大图灯箱
+          customRenderer.image = function(href, title, text) {
+            const cleanHref = (href || '').trim();
+            const altText = text || '';
+            const titleAttr = title ? `title="${title}"` : '';
+            return `<figure class="my-3 text-center"><img src="${cleanHref}" alt="${altText}" ${titleAttr} class="cursor-zoom-in active:scale-98 transition-transform" onclick="window.__openImageModal && window.__openImageModal('${cleanHref}')" />${altText ? `<figcaption class="text-[11px] text-stone-500 mt-1.5 font-mono">${altText}</figcaption>` : ''}</figure>`;
+          };
+          marked.use({ renderer: customRenderer, breaks: true, gfm: true });
+        }
+
+        // Markdown 富文本安全渲染函数 (带自定义表格与图片兜底)
         const renderMarkdown = (text) => {
           if (!text) return '';
           if (window.marked && typeof window.marked.parse === 'function') {
             try {
-              return window.marked.parse(text, { breaks: true, gfm: true });
+              return window.marked.parse(text);
             } catch (e) {
               console.warn('marked parse error:', e);
             }
@@ -1995,10 +2151,19 @@
 
         onMounted(() => {
           loadSessions();
+          window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && previewImageUrl.value) {
+              closeImagePreview();
+            }
+          });
         });
 
         return {
           currentNav,
+          // 大图灯箱
+          previewImageUrl,
+          openImagePreview,
+          closeImagePreview,
           // Omni Hub (FirstPage)
           isSessionPanelOpen,
           sessions,
