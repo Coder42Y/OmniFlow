@@ -58,6 +58,7 @@ Thumbs.db
 *.bak
 *.bak_*
 
-# 日志文件
+# 日志文件与敏感交接备忘
 *.log
 .vercel
+HANDOFF.md
