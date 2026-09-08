@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>OmniFlow - 全模态协同创作工作台</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -250,13 +250,68 @@
       text-align: center;
       font-family: ui-monospace, SFMono-Regular, monospace;
     }
+    .mobile-nav, .mobile-session-backdrop, .mobile-drawer-close, .mobile-advanced > summary { display: none; }
+    .mobile-advanced > div + div { margin-top:12px; }
+    @media (max-width: 767px) {
+      html, body { width:100%; height:100%; overflow:hidden; overscroll-behavior:none; }
+      body { height:var(--mobile-height, 100vh); height:var(--mobile-height, 100dvh); }
+      #app { flex-direction:column; min-height:0; padding-top:env(safe-area-inset-top, 0px); }
+      .desktop-sidebar { display:none!important; }
+      #app > main { flex:1; min-height:0; width:100%; }
+      .chat-workspace { position:relative; min-height:0; }
+      .chat-content { padding:10px 12px 8px!important; min-height:0; }
+      .chat-header { padding:6px 8px!important; gap:6px!important; margin-bottom:12px!important; border-radius:16px!important; }
+      .chat-header > div { gap:6px!important; min-width:0; }
+      .chat-header h2 { font-size:14px; white-space:nowrap; }
+      .chat-header h2 + span, .chat-header h2 ~ span, .chat-header p,
+      .chat-header > div:first-child > div.w-8,
+      .chat-header > div:last-child > button:not(:first-child) { display:none!important; }
+      .chat-header button { min-width:44px; min-height:44px; }
+      .chat-header > div:last-child > button:first-child span:last-child { display:inline!important; }
+      .chat-messages { min-height:0; margin-bottom:10px!important; -webkit-overflow-scrolling:touch; }
+      .chat-messages > .my-6 { margin:16px 0!important; }
+      .chat-messages .p-8 { padding:22px 16px!important; }
+      .chat-messages .max-w-\[88\%\] { max-width:100%!important; }
+      .chat-messages p { font-size:14px; line-height:1.8; }
+      .chat-messages img, .chat-messages video { max-width:100%; }
+      .chat-composer { padding:8px!important; box-shadow:none!important; }
+      .chat-composer > div:last-child:not(:first-child) { display:none!important; }
+      .chat-composer textarea { font-size:16px!important; line-height:1.5; min-height:68px; padding-right:88px; }
+      .chat-composer button { min-height:44px; }
+      .mobile-nav { display:flex; flex-shrink:0; gap:4px; background:#fff; border-top:1px solid #e7e1d8; padding:5px 8px calc(5px + env(safe-area-inset-bottom, 0px)); }
+      .mobile-nav button { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; min-height:52px; border-radius:13px; font-size:12px; color:#78716c; }
+      .mobile-nav button span { font-size:23px; line-height:26px; }
+      .mobile-nav button[aria-current='page'] { background:#f8eee8; color:#833f26; }
+      .mobile-keyboard .mobile-nav { display:none; }
+      .mobile-keyboard .chat-composer { margin-bottom:env(safe-area-inset-bottom, 0px); }
+      .session-panel { position:absolute; top:0; bottom:0; left:0; z-index:41; height:100%; max-width:86vw; box-shadow:10px 0 35px #0002; }
+      .session-panel.session-open { width:min(320px, 86vw)!important; }
+      .mobile-session-backdrop { display:block; position:absolute; inset:0; background:#0006; z-index:40; border:0; }
+      .mobile-drawer-close { display:block; min-height:48px; text-align:right; padding:10px 18px; flex-shrink:0; border-bottom:1px solid #e7e1d8; }
+      #app > main > div:not(.chat-workspace) { padding:16px 12px!important; min-height:0; -webkit-overflow-scrolling:touch; }
+      #app > main > div:not(.chat-workspace) .p-6 { padding:16px!important; }
+      #app > main > div:not(.chat-workspace) .grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      #app > main > div:not(.chat-workspace) > .grid { grid-template-columns:minmax(0,1fr); }
+      .motion-source { flex-wrap:wrap; }
+      .motion-source > input { flex:1 0 100%; min-width:0; }
+      .mobile-advanced { border:1px solid #e7e1d8; border-radius:12px; padding:10px; }
+      .mobile-advanced > summary { display:list-item; cursor:pointer; min-height:44px; padding:12px 0; font-size:14px; }
+      .mobile-advanced > div { margin-top:12px; }
+      #app > main > div:not(.chat-workspace) .grid > * { grid-column:auto!important; min-width:0; }
+      #app > main > div:not(.chat-workspace) input,
+      #app > main > div:not(.chat-workspace) textarea,
+      #app > main > div:not(.chat-workspace) select { font-size:16px!important; max-width:100%; }
+      #app > main > div:not(.chat-workspace) button { min-height:44px; white-space:normal; }
+      #app > main > div:not(.chat-workspace) h2 { font-size:20px; }
+      #app > main > div:not(.chat-workspace) .flex { min-width:0; }
+    }
   </style>
 </head>
 <body class="bg-stone-100 text-stone-800 antialiased h-screen flex overflow-hidden font-sans">
   <div id="app" v-cloak class="flex-1 flex overflow-hidden w-full">
     
     <!-- 左侧主导航 Sidebar (经典垂直侧边栏切换模式) -->
-    <aside class="w-64 bg-stone-900 text-stone-300 flex flex-col justify-between border-r border-stone-800 shrink-0 select-none">
+    <aside class="desktop-sidebar w-64 bg-stone-900 text-stone-300 flex flex-col justify-between border-r border-stone-800 shrink-0 select-none">
       <div>
         <!-- 品牌 Logo: OmniFlow 与 𝓥 极速流线徽标 -->
         <div class="p-5 border-b border-stone-800 flex items-center gap-3">
@@ -337,11 +392,13 @@
       <!-- ======================================================== -->
       <!-- 视图 0：Omni Hub (FirstPage) - 全模态协同总览中心 -->
       <!-- ======================================================== -->
-      <div v-show="currentNav === 'first_page'" class="flex-1 flex h-full w-full overflow-hidden">
+      <div v-show="currentNav === 'first_page'" class="chat-workspace flex-1 flex h-full w-full overflow-hidden">
+        <button v-if="isSessionPanelOpen" class="mobile-session-backdrop" @click="isSessionPanelOpen = false" aria-label="关闭历史会话"></button>
         
         <!-- 左侧：会话历史侧栏 (Session Drawer)，带精致边框与折叠动效，Codex 极细滚动条 -->
-        <div class="h-full border-r border-stone-200 bg-white flex flex-col shrink-0 transition-all duration-300 ease-in-out select-none"
-             :class="isSessionPanelOpen ? 'w-64' : 'w-0 border-r-0 overflow-hidden opacity-0 pointer-events-none'">
+        <div class="session-panel h-full border-r border-stone-200 bg-white flex flex-col shrink-0 transition-all duration-300 ease-in-out select-none"
+             :class="isSessionPanelOpen ? 'w-64 session-open' : 'w-0 border-r-0 overflow-hidden opacity-0 pointer-events-none'">
+          <button class="mobile-drawer-close" @click="isSessionPanelOpen = false">关闭历史 ✕</button>
           
           <!-- 侧栏顶部：新建对话大按钮 -->
           <div class="p-3 border-b border-stone-100 shrink-0">
@@ -436,16 +493,16 @@
         </div>
 
         <!-- 右侧：Omni Hub 核心主视窗 -->
-        <div class="flex-1 flex flex-col h-full max-w-5xl mx-auto w-full p-4 lg:p-6 overflow-hidden min-w-0">
+        <div class="chat-content flex-1 flex flex-col h-full max-w-5xl mx-auto w-full p-4 lg:p-6 overflow-hidden min-w-0">
           
           <!-- 头部状态条 -->
-          <div class="bg-white px-5 py-3 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-between shrink-0 mb-4 gap-3">
+          <div class="chat-header bg-white px-5 py-3 rounded-2xl border border-stone-200 shadow-sm flex items-center justify-between shrink-0 mb-4 gap-3">
             <div class="flex items-center gap-3">
               <!-- 折叠/展开会话侧栏按钮 -->
               <button @click="isSessionPanelOpen = !isSessionPanelOpen"
                       :title="isSessionPanelOpen ? '收起会话列表' : '展开会话历史'"
                       class="w-8 h-8 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-600 flex items-center justify-center text-xs transition shrink-0">
-                <span class="transform transition duration-200" :class="isSessionPanelOpen ? '' : 'rotate-180'">◀</span>
+                <span class="transform transition duration-200" :class="!isMobileLayout && !isSessionPanelOpen ? 'rotate-180' : ''">{{ isMobileLayout ? '历史' : '◀' }}</span>
               </button>
 
               <div class="w-8 h-8 rounded-xl bg-stone-900 flex items-center justify-center text-white text-base font-bold shadow-xs">
@@ -453,7 +510,7 @@
               </div>
               <div>
                 <div class="flex items-center gap-2">
-                  <h2 class="text-sm font-bold text-stone-900">Omni Hub 协同调度中心</h2>
+                  <h2 class="text-sm font-bold text-stone-900">{{ isMobileLayout ? 'OmniFlow' : 'Omni Hub 协同调度中心' }}</h2>
                   <span class="text-[10px] text-stone-400 font-mono hidden md:inline">FirstPage</span>
                   <span class="text-[10px] bg-brand-50 text-brand-700 border border-brand-200 px-2 py-0.5 rounded-full font-medium">
                     Gemini 3.8 Flash 主控 · Multi-Agent 架构
@@ -481,7 +538,7 @@
           </div>
 
           <!-- 消息流动展示区域 (Codex 极细微隐滚动条) -->
-          <div class="flex-1 overflow-y-auto space-y-4 pr-1 mb-4 codex-scrollbar" ref="chatScrollBox">
+          <div class="chat-messages flex-1 overflow-y-auto space-y-4 pr-1 mb-4 codex-scrollbar" ref="chatScrollBox">
           
           <!-- 空态初始欢迎卡片 -->
           <div v-if="chatMessages.length === 0" class="my-6 space-y-6">
@@ -489,9 +546,9 @@
               <div class="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-tr from-brand-600 to-amber-500 flex items-center justify-center text-3xl text-white shadow-md">
                 ⚡
               </div>
-              <h3 class="text-xl font-bold text-stone-900">欢迎来到 FirstPage 创作总览中心</h3>
+              <h3 class="text-xl font-bold text-stone-900">好商品，值得被更多人看见</h3>
               <p class="text-xs text-stone-600 leading-relaxed">
-                无需在各个工具间繁琐切换。在下方输入您的带货想法或商品名称，即可自动完成<b>“爆款脚本 ➔ 高清商业海报 ➔ 电影级运镜短视频”</b>全链路打包生成，并随时可一键流转至三大工作区精修！
+                告诉我商品和创作需求，从一个想法开始。也可以切换到文案、海报或视频工作区，继续完成创作。
               </p>
             </div>
 
@@ -634,11 +691,11 @@
         </div>
 
         <!-- 底部固定输入框区域 (Chat Input Bar) -->
-        <div class="bg-white rounded-2xl border border-stone-200 p-3 shadow-md shrink-0 space-y-2">
+        <div class="chat-composer bg-white rounded-2xl border border-stone-200 p-3 shadow-md shrink-0 space-y-2">
           <div class="relative">
             <textarea v-model="userInputText" 
                       @keydown.enter.prevent="handleEnterPress"
-                      placeholder="在 OmniFlow 提出你的带货诉求（例如：出套黑曜石男香带货全案，包含脚本、海报与5秒推镜头短视频）..." 
+                      placeholder="说说你的商品或创作想法…"
                       rows="2"
                       class="w-full resize-none bg-stone-50 p-2.5 pr-24 rounded-xl text-xs text-stone-800 placeholder-stone-400 border border-stone-200 focus:outline-none focus:ring-1 focus:ring-brand-500 font-sans"></textarea>
             
@@ -1002,6 +1059,8 @@
             <!-- 3. 4维工业级摄影调配器 (Podium, Lighting, Framing, Ratio) -->
             <div class="space-y-3 pt-1 border-t border-stone-100">
               
+              <details class="mobile-advanced" :open="!isMobileLayout">
+                <summary>更多摄影设置 · 底座、布光、景别</summary>
               <!-- 展台底座选择 -->
               <div>
                 <div class="flex items-center justify-between text-[11px] font-bold text-stone-700 mb-1.5">
@@ -1053,6 +1112,7 @@
                 </div>
               </div>
 
+              </details>
               <!-- 画幅比例选择 -->
               <div>
                 <div class="flex items-center justify-between text-[11px] font-bold text-stone-700 mb-1.5">
@@ -1186,7 +1246,7 @@
                   填入男香示例模板
                 </button>
               </div>
-              <div class="flex gap-2">
+              <div class="motion-source flex gap-2">
                 <input v-model="motionSourceImage" type="text" placeholder="输入海报图片URL或从海报工作区流转..." 
                        class="flex-1 bg-stone-50 p-2.5 rounded-xl border border-stone-200 text-xs text-stone-800 placeholder-stone-400 focus:outline-none focus:ring-1 focus:ring-brand-500 font-mono">
                 <label class="px-3 py-2 text-xs bg-stone-900 hover:bg-stone-800 text-white rounded-xl cursor-pointer shrink-0 flex items-center gap-1 shadow-2xs transition">
@@ -1270,27 +1330,46 @@
 
         </div>
 
-        </div>
-
       </div>
 
     </main>
-
-
-
+    <nav class="mobile-nav" aria-label="手机工作区导航">
+      <button v-for="item in [{id:'first_page',label:'对话',icon:'☏'},{id:'script',label:'文案',icon:'✎'},{id:'visual',label:'海报',icon:'◈'},{id:'motion',label:'视频',icon:'▷'}]" :key="item.id" @click="currentNav = item.id; isSessionPanelOpen = false" :aria-current="currentNav === item.id ? 'page' : null"><span aria-hidden="true">{{ item.icon }}</span>{{ item.label }}</button>
+    </nav>
   </div>
 
   <script>
+    // 微信与手机浏览器使用实际可视高度，避免底部操作被地址栏或键盘遮住。
+    (() => {
+      const update = () => {
+        const mobile = window.matchMedia('(max-width: 767px)').matches;
+        const viewport = window.visualViewport;
+        const editing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
+        document.documentElement.classList.toggle('mobile-keyboard', mobile && editing);
+        if (mobile) document.documentElement.style.setProperty('--mobile-height', (viewport ? viewport.height : window.innerHeight) + 'px');
+        else document.documentElement.style.removeProperty('--mobile-height');
+      };
+      window.addEventListener('resize', update);
+      window.visualViewport?.addEventListener('resize', update);
+      document.addEventListener('focusin', update);
+      document.addEventListener('focusout', () => setTimeout(update, 100));
+      update();
+    })();
     const { createApp, ref, computed, nextTick, onMounted, reactive } = Vue;
 
     createApp({
       setup() {
         // 核心导航：默认首页为 FirstPage 创作总览中心
         const currentNav = ref('first_page');
+        const mobileMedia = window.matchMedia('(max-width: 767px)');
+        const isMobileLayout = ref(mobileMedia.matches);
+        const updateMobileLayout = event => { isMobileLayout.value = event.matches; isSessionPanelOpen.value = !event.matches; };
+        if (mobileMedia.addEventListener) mobileMedia.addEventListener('change', updateMobileLayout);
+        else mobileMedia.addListener(updateMobileLayout);
 
         // ================= 视图 0：Omni Hub (FirstPage) 协同调度中心 =================
         const STORAGE_KEY_SESSIONS = 'omniflow_chat_sessions_v1';
-        const isSessionPanelOpen = ref(true);
+        const isSessionPanelOpen = ref(!window.matchMedia('(max-width: 767px)').matches);
         const sessions = ref([]);
         const currentSessionId = ref('');
 
@@ -1362,6 +1441,7 @@
 
         // 新建对话
         const createNewSession = () => {
+          if (isMobileLayout.value) isSessionPanelOpen.value = false;
           if (currentSession.value && currentSession.value.messages.length === 0) {
             userInputText.value = '';
             nextTick(() => {
@@ -1383,6 +1463,7 @@
 
         // 切换会话
         const switchSession = (id) => {
+          if (isMobileLayout.value) isSessionPanelOpen.value = false;
           if (currentSessionId.value === id) return;
           currentSessionId.value = id;
           userInputText.value = '';
@@ -2157,6 +2238,7 @@
           currentNav,
           // Omni Hub (FirstPage)
           isSessionPanelOpen,
+          isMobileLayout,
           sessions,
           currentSessionId,
           currentSession,

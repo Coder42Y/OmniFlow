@@ -4,9 +4,21 @@
     {
       "src": "index.html",
       "use": "@vercel/static"
+    },
+    {
+      "src": "prototypes/mobile.html",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
+    {
+      "src": "/mobile/?",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/mobile-preview/?",
+      "dest": "/prototypes/mobile.html"
+    },
     {
       "src": "/api/(.*)",
       "dest": "https://careers-technology-mon-vid.trycloudflare.com/api/$1"
