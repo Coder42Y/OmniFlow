@@ -1,0 +1,44 @@
+[build-system]
+requires = ["hatchling==1.29.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "omniflow-backend"
+version = "0.1.0"
+description = "OmniFlow 独立创作工作台后端"
+requires-python = ">=3.12,<3.15"
+dependencies = [
+  "argon2-cffi>=25.1,<26",
+  "anyio>=4.12,<4.13",
+  "fastapi>=0.115,<1",
+  "pydantic-settings>=2.7,<3",
+  "pillow>=12,<13",
+  "python-multipart>=0.0.22,<0.1",
+  "uvicorn>=0.34,<1",
+]
+
+[dependency-groups]
+dev = [
+  "pytest>=8.3,<10",
+  "jsonschema>=4.23,<5",
+  "ruff>=0.11,<1",
+  "httpx2>=2.12.0",
+]
+
+[project.scripts]
+omniflow = "omniflow.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/omniflow"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers --strict-config --basetemp=backend/var/pytest"
+filterwarnings = ["error"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

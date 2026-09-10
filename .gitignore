@@ -17,6 +17,10 @@ audio/*.wav
 *.jpeg
 *.webp
 
+# 已批准设计的两张公开参考截图；不放开其他生成素材
+!docs/specs/assets/files/codex-reference-idle.png
+!docs/specs/assets/files/codex-reference-hover.png
+
 # Python 缓存与虚拟环境
 __pycache__/
 *.py[cod]
@@ -62,3 +66,6 @@ Thumbs.db
 *.log
 .vercel
 HANDOFF.md
+
+# 本地 Superpowers 设计预览与会话凭据
+.superpowers/

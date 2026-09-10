@@ -1,0 +1,2 @@
+# 规范副本必须逐字节一致，由 tools/sync-tokens.js 生成。
+src/tokens.css

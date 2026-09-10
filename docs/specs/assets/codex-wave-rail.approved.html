@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>OmniFlow · 横线波浪进度条对齐</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfd;--side:#f3f5f7;--ink:#30353c;--muted:#858c96;--line:#e8ebef;--blue:#59758d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.8 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,textarea{font:inherit}button{cursor:pointer;color:inherit;border:0;background:none}button:focus-visible,a:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #6688a7;outline-offset:4px}button:disabled{opacity:.35;cursor:default}a{color:#506e88}svg{display:block}button svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}.shell{height:100vh;height:100dvh;display:flex;overflow:hidden}.sidebar{width:212px;flex:none;background:var(--side);padding:21px 14px;display:flex;flex-direction:column;transition:width .22s;overflow:hidden}.brand{font-size:17px;letter-spacing:-.5px;display:flex;align-items:center;gap:10px;padding:0 9px 25px;font-weight:600;white-space:nowrap}.brand-symbol{display:inline-block;color:#526b82;font-size:25px;line-height:1}.nav-item{display:flex;align-items:center;gap:12px;padding:9px 11px;border-radius:8px;width:100%;text-align:left;white-space:nowrap;color:#69727c}.nav-item.active{background:#e6ebf0;color:#304b62}.nav-item:hover{background:#e9edf1}.nav-item span{overflow:hidden}.sidebar small{display:block;color:#9299a2;padding:27px 11px 9px;font-size:11px;letter-spacing:1px}.history-title{font-size:12px;padding:9px 11px;white-space:nowrap;color:#616b76}.history-title.selected{background:#e9edf2;border-radius:7px;color:#3a4a5a}.sidebar-bottom{margin-top:auto;display:flex;align-items:center;gap:9px;padding:12px 10px 0;color:#7d8791;font-size:12px}.avatar{width:24px;height:24px;background:#e0e6ec;color:#586e83;border-radius:50%;display:grid;place-items:center;font-size:11px}.sidebar.collapsed{width:64px;padding-inline:10px}.sidebar.collapsed .brand{padding-inline:8px}.sidebar.collapsed .brand-name,.sidebar.collapsed .nav-item span,.sidebar.collapsed .history,.sidebar.collapsed small,.sidebar.collapsed .sidebar-bottom .account{display:none}.sidebar.collapsed .nav-item{padding-inline:12px}.workspace{position:relative;min-width:0;flex:1;display:flex;flex-direction:column}.topbar{height:64px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 28px 0 20px;gap:10px}.top-left,.top-right{display:flex;align-items:center;gap:14px;min-width:0}.icon-button{display:grid;place-items:center;width:32px;height:32px;border-radius:7px}.icon-button:hover{background:#eef1f4}.title{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.subtle-button{font-size:12px;color:#7c8590;white-space:nowrap;padding:5px 9px;border-radius:6px}.subtle-button:hover{background:#eef1f4;color:#3c4e60}.preview-tag{font-size:10px;color:#9ba2aa;letter-spacing:1px}.stage{flex:1;position:relative;min-height:0}.transcript{height:100%;overflow:auto;overscroll-behavior:contain;scrollbar-width:none;outline-offset:-3px!important}.transcript::-webkit-scrollbar{display:none}.messages{max-width:748px;margin:0 auto;padding:30px 42px 50px 50px}.turn{padding-bottom:44px;scroll-margin-top:28px}.user-row{display:flex;justify-content:flex-end;margin-bottom:23px}.user-message{background:#eff2f5;border-radius:18px 18px 5px 18px;padding:12px 17px;max-width:88%;font-size:14px;line-height:1.9}.assistant-message{font-size:14px;line-height:1.95;color:#434b55}.assistant-message p{margin:0 0 12px}.assistant-message p:last-child{margin:0}.assistant-message .quiet{color:#959da6;font-size:12px;margin-top:12px}.art{margin:17px 0 12px;max-width:520px;border-radius:12px;overflow:hidden;background:#1a2b3c;position:relative;aspect-ratio:16/10}.art svg{height:100%;width:100%}.art-label{position:absolute;bottom:12px;left:14px;color:#e8eef4;font-size:10px;letter-spacing:2px}.art-caption{font-size:11px;color:#8b96a1}.actions{display:flex;gap:15px;margin:12px 0 0;color:#697d90;font-size:12px}.actions span{padding:3px 0}.turn.landing .user-message{animation:landing 1.1s ease-out}@keyframes landing{0%{background:#dbe6f0}100%{background:#eff2f5}}
+/* 横线左端固定；邻近指针的横线长度组成波峰，不画正弦曲线。 */
+.rail-wrap{position:absolute;z-index:5;left:0;top:50%;transform:translateY(-50%);width:66px;max-height:calc(100% - 32px);display:flex;flex-direction:column;align-items:flex-start}.rail{position:relative;width:66px;touch-action:none;user-select:none;cursor:pointer;outline-offset:-5px!important}.rib{position:absolute;left:12px;height:2px;width:6px;border-radius:1px;background:#c9cdd1;pointer-events:none;transform-origin:left center;will-change:width;transition:background-color .15s}.rib.current{background:#727b86}.rail-tip{position:absolute;left:54px;width:286px;padding:13px 16px;background:rgba(253,253,254,.98);border:1px solid #e7e9ec;border-radius:12px;box-shadow:0 6px 24px #1c2f4210;pointer-events:none;opacity:0;transition:opacity .12s;transform:translateY(-50%)}.rail-tip.visible{opacity:1}.tip-heading{font-size:10px;color:#959ca5;margin-bottom:5px;letter-spacing:.5px}.tip-content{font-size:12px;color:#434b54;line-height:1.9;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}.tip-answer{font-size:12px;color:#a2a8b0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:5px}.rail-hint{position:absolute;left:18px;top:15px;color:#8a96a1;font-size:11px;writing-mode:vertical-rl;letter-spacing:1px;pointer-events:none;transition:opacity .2s}.rail-hint.hidden{opacity:0}.back-latest{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);border:1px solid #e5e9ed;background:#fff;border-radius:24px;padding:5px 14px;color:#77818d;font-size:11px;box-shadow:0 2px 9px #263a5010}.back-latest[hidden]{display:none}.composer-area{flex:none;padding:5px 40px 16px 50px}.composer{max-width:656px;margin:auto;border:1px solid #e0e5ea;border-radius:20px;background:#fff;padding:12px 14px 9px;box-shadow:0 3px 14px #364f6810}.composer textarea{display:block;width:100%;resize:none;border:0;outline:none!important;background:none;color:#3d4854;font-size:14px;line-height:1.7;min-height:48px;max-height:130px;padding:1px 4px}.composer textarea::placeholder{color:#a0a7af}.composer-tools{display:flex;justify-content:space-between;align-items:center}.composer-left{display:flex;align-items:center;gap:9px}.draft-note{font-size:10px;color:#a0a7af}.send{background:#607c95;border-radius:50%;color:white;width:30px;height:30px;display:grid;place-items:center}.send svg{width:16px;height:16px}.footnote{text-align:center;font-size:10px;color:#a5abb3;margin:7px 0 0}.attachment{font-size:11px;color:#7d8792;max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}input[type=file]{display:none}.toast{position:fixed;z-index:20;left:50%;bottom:30px;transform:translateX(-50%);padding:8px 18px;border:1px solid #e5e9ee;border-radius:20px;background:#fff;box-shadow:0 4px 18px #243d5320;font-size:12px}.toast[hidden]{display:none}dialog{border:1px solid #e1e6eb;border-radius:18px;padding:0;width:min(820px,calc(100vw - 32px));max-height:88vh;color:var(--ink);background:var(--bg);box-shadow:0 20px 80px #152b4930}dialog::backdrop{background:#23364855;backdrop-filter:blur(3px)}.dialog-header{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--line)}.dialog-header h2{font-size:16px;font-weight:500;margin:0}.dialog-body{padding:22px 26px;max-height:70vh;overflow:auto;font-size:13px}.dialog-body p{margin:0 0 13px}.source-grid{display:grid;grid-template-columns:190px 1fr;gap:28px;padding:10px 0 20px}.source-grid figure{margin:0}.source-grid img{display:block;max-width:100%;border:1px solid #e4e8ec;border-radius:5px}.source-grid figcaption{font-size:11px;color:#8b939d;margin:10px 0}.source-idle{max-height:440px;object-fit:contain;object-position:top}.source-notice{background:#f0f3f6;border-radius:10px;padding:14px 16px;font-size:12px;color:#788592}.mobile-brand{display:none}.video-placeholder{display:flex;align-items:center;justify-content:center;aspect-ratio:16/9;border-radius:12px;background:#edf1f5;color:#8090a0;margin:16px 0;max-width:520px;font-size:12px}
+@media(max-width:900px){.sidebar{width:174px}.topbar{padding-right:15px}.messages{padding-right:28px;padding-left:76px}.composer-area{padding-inline:28px 24px}.draft-note{display:none}.preview-tag{display:none}}
+@media(max-width:620px){.sidebar{display:none}.topbar{height:55px;padding:0 12px 0 8px}.top-left,.top-right{gap:3px}.title{font-size:12px;max-width:148px}.subtle-button{font-size:10px;padding:5px 6px}.messages{padding:24px 18px 36px 50px}.user-message{font-size:13px;max-width:95%}.assistant-message{font-size:13px}.turn{padding-bottom:35px}.composer-area{padding:4px 12px calc(10px + env(safe-area-inset-bottom))}.composer{border-radius:17px}.composer textarea{font-size:16px}.footnote{font-size:9px}.rail-wrap,.rail{width:42px}.rib{left:7px}.rail-tip{left:39px;width:min(260px,calc(100vw - 57px))}.rail-hint{left:9px;font-size:10px}.source-grid{grid-template-columns:120px 1fr;gap:14px}.dialog-body{padding:17px}.source-notice{padding:10px}.dialog-header{padding:13px 17px}.attachment{max-width:160px}.sidebar.mobile-open{display:flex;position:absolute;inset:0 auto 0 0;width:190px;z-index:15;box-shadow:4px 0 25px #1b344326}.back-latest{bottom:9px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="sidebar" id="sidebar" aria-label="创作导航">
+ <div class="brand"><span class="brand-symbol">≋</span><span class="brand-name">OmniFlow</span></div>
+ <button class="nav-item active" id="new-creation"><svg viewBox="0 0 24 24"><path d="M12 4v16M4 12h16"/></svg><span>新建创作</span></button>
+ <button class="nav-item secondary"><svg viewBox="0 0 24 24"><path d="M5 5h14M12 5v14M8 19h8"/></svg><span>文案</span></button>
+ <button class="nav-item secondary"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m4 16 5-5 5 5 3-3 3 3"/><circle cx="15" cy="9" r="1"/></svg><span>图片</span></button>
+ <button class="nav-item secondary"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="3"/><path d="m16 10 5-3v10l-5-3"/></svg><span>视频</span></button>
+ <small>最近的创作</small>
+ <div class="history"><div class="history-title selected">雨夜城市 · 视觉探索</div><div class="history-title">一封写给未来的信</div><div class="history-title">清晨森林的光</div></div>
+ <div class="sidebar-bottom"><span class="avatar">K</span><span class="account">独立设计预览</span></div>
+</aside>
+<main class="workspace">
+ <header class="topbar"><div class="top-left"><button class="icon-button" id="toggle-sidebar" aria-label="展开或收起主导航" aria-expanded="true"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M9 4v16"/></svg></button><span class="title">雨夜城市 · 视觉探索</span></div><div class="top-right"><span class="preview-tag">对齐原型</span><button class="subtle-button" id="demo-wave">演示波浪</button><button class="subtle-button" id="open-reference">参考依据 ↗</button></div></header>
+ <section class="stage" aria-label="对话与历史定位">
+  <div class="transcript" id="transcript" role="region" tabindex="0" aria-label="创作对话记录"><div class="messages" id="messages"></div></div>
+  <span class="rail-hint" id="rail-hint">移到短横线上试试 ↓</span>
+  <div class="rail-wrap" id="rail-wrap"><div class="rail" id="rail" tabindex="0" role="slider" aria-label="对话历史横线定位条" aria-orientation="vertical" aria-valuemin="1" aria-valuemax="1" aria-valuenow="1" aria-controls="transcript"></div><div class="rail-tip" id="rail-tip" aria-hidden="true"><div class="tip-heading" id="tip-heading"></div><div class="tip-content" id="tip-content"></div><div class="tip-answer" id="tip-answer"></div></div></div>
+  <button class="back-latest" id="back-latest" hidden>↓ 回到最新</button>
+ </section>
+ <footer class="composer-area"><form class="composer" id="composer"><textarea id="prompt" rows="2" placeholder="继续描述你的想法……" aria-label="创作需求"></textarea><div class="composer-tools"><div class="composer-left"><button type="button" class="icon-button" id="upload" aria-label="添加参考图"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button><input type="file" id="file" accept="image/*"><span class="attachment" id="attachment"></span><span class="draft-note">想法，让画面继续</span></div><button class="send" id="send" aria-label="发送预览消息" disabled><svg viewBox="0 0 24 24"><path d="M12 19V5m-6 6 6-6 6 6"/></svg></button></div></form><p class="footnote">独立交互预览 · 不调用 AI · 横线外观参考公开截图，动态手感待对齐</p></footer>
+</main>
+</div>
+<dialog id="reference-dialog" aria-labelledby="reference-title"><div class="dialog-header"><h2 id="reference-title">先看原图，再对齐手感</h2><button class="icon-button" id="close-reference" aria-label="关闭参考依据">✕</button></div><div class="dialog-body"><p>在 Codex 官方仓库的用户反馈中找到了这两张实际界面截图：<a href="https://github.com/openai/codex/issues/38631" target="_blank" rel="noopener noreferrer">查看原始来源 #38631 ↗</a>。</p><div class="source-grid"><figure><img class="source-idle" src="/files/codex-reference-idle.png" width="174" height="777" alt="公开 Codex 截图：对话左侧一列浅灰短横线，红色勾是原作者标注"><figcaption>静止状态：左侧短横线。<br>红色勾为原作者标注，不是界面。</figcaption></figure><div><figure><img src="/files/codex-reference-hover.png" width="256" height="102" alt="公开 Codex 悬停截图：横线局部变长形成波峰，右侧出现消息预览"><figcaption>悬停状态：局部横线变长，形成波峰；右侧为消息预览。</figcaption></figure><p>这次预览不是圆点导航，也不是弯曲的波浪线：是「一列短横线，长度变化组成波峰」。</p><div class="source-notice">已核对：横线外观、左侧位置、悬停截图和消息预览。<br><br>仍待核对：动画速度、回弹、拖动细节。没有找到完整动效录屏，当前动态是对齐原型，不宣称已经完全复刻。</div><p style="margin-top:18px;color:#8e98a3;font-size:11px">来源里的“新增书签”属于作者的功能请求，本预览没有把它当作既有功能。</p></div></div><p>关闭这里，在对话左侧上下移动鼠标、点击或拖动横线，确认是不是你说的那种感觉。</p></div></dialog>
+<div class="toast" id="toast" role="status" hidden></div>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const transcript=$('transcript'),messages=$('messages'),rail=$('rail'),tip=$('rail-tip');
+const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+const turns=[
+ ['想做一段雨夜城市短片，安静一点，有电影感。','先把画面方向确定下来。雨后的街道、暖色橱窗和远处的车灯，镜头停留在街角。我们先看一张视觉确认稿。','art'],
+ ['不要太科幻。像晚上散步时，偶然看到的一条街。','明白。把夸张的霓虹换成日常灯光，路面保留雨水反射。画面里不需要很多人，让城市自己讲故事。'],
+ ['色调偏冷，但店里的灯是暖的。','冷色环境与暖色室内形成一点对比。阴影保留细节，不把夜景压得太黑。','art'],
+ ['这个方向可以，街道再窄一点。','保持同一个街角，把街道收窄，视线延伸到远处。两侧建筑更贴近，但不会挤满画面。'],
+ ['画面左边留一盏路灯。','左侧加入一盏旧路灯，灯光落在湿润的人行道上。它会成为前景的视觉支点。'],
+ ['不要文字和招牌，先保留纯画面。','去掉可读文字和醒目广告。只保留橱窗透出的光、建筑轮廓和雨水的质感。','art'],
+ ['如果做成横屏，看起来会不会更好？','横屏能给街道更多呼吸的空间，也适合后续车辆缓慢驶过。这个方向先用 16:9，竖屏版本可以之后单独调整。'],
+ ['好的，用横屏。路上可以有一辆车。','保留横屏构图。车放在中景，不抢走街角和灯光的注意力；让车灯在地面上留下柔和倒影。'],
+ ['我想要的不是伤感，是一种很平静的感觉。','可以。减少强烈的明暗反差，让灯光更柔和，画面更干净。雨已经停了，只剩屋檐偶尔落下水滴。'],
+ ['这张我喜欢。用它做视频，镜头不要动。','把这一版作为参考画面。镜头固定，车辆缓慢驶过，地面倒影随车灯轻微变化，建筑保持稳定。','art'],
+ ['车从右边慢慢开过去就好。','动作方向明确为从右向左，速度缓慢，不添加突然转向或镜头跟随。画面里其余部分尽量保持安静。'],
+ ['四秒会不会太短？','四秒适合一个简单动作。如果希望车辆完整驶过并留一点停顿，可以尝试更长版本。当前先用短样片确认动作节奏。'],
+ ['先四秒看一下吧。','在正式产品里，这里会显示真实的生成状态，完成后直接出现视频。当前只是滚动条对齐预览，不提交生成任务。','video'],
+ ['之后能不能保留这一版，再试一个更暖的版本？','可以把这个方向保留为独立版本，再调整灯光。新画面不会覆盖已经选定的参考图，也不会改变已经提交的视频任务。'],
+ ['那我们先保留现在的，不急着再生成。','好的，先停在这一版。风格、构图和动作都已经对齐，后续需要继续时，可以直接从这段对话接着做。'],
+ ['我想回头看看最开始的画面想法。','试试左侧那列短横线：移过时观察局部波峰，点击对应位置返回历史，或者按住上下拖动。右上角可以查看公开的 Codex 原图。']
+];
+function cityArt(warm=false){return `<div class="art"><svg viewBox="0 0 640 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="雨夜城市示意插画，非 AI 生成"><defs><linearGradient id="sky-${warm}" x2="0" y2="1"><stop stop-color="#1b2b42"/><stop offset="1" stop-color="#536c80"/></linearGradient><linearGradient id="road-${warm}" x2="0" y2="1"><stop stop-color="#4e6576"/><stop offset="1" stop-color="#1e2d41"/></linearGradient><radialGradient id="glow-${warm}"><stop stop-color="#ffd6a1" stop-opacity=".5"/><stop offset="1" stop-color="#ffd6a1" stop-opacity="0"/></radialGradient></defs><rect width="640" height="400" fill="url(#sky-${warm})"/><path d="M0 0H154V281H0M161 71H234V268H161M640 0H461V280H640M449 100H402V270H449" fill="#1a2838"/><path d="M243 150h46v125h-46m95-86h54v86h-54" fill="#283c50"/><path d="M0 400 293 258h53l294 142" fill="url(#road-${warm})"/><path d="m0 400 272-125m368 125L361 275" stroke="#8b9299" stroke-opacity=".28"/><g fill="${warm?'#e9b780':'#caaa81'}"><path d="M42 105h47v68H42zm66 0h25v68h-25zM480 151h54v87h-54zm66 0h44v87h-44z"/><path d="M175 118h16v27h-16zm25 0h16v27h-16zM412 145h11v23h-11z" opacity=".6"/></g><g stroke="#d6bb92" stroke-opacity=".3" stroke-width="4"><path d="m488 309 61 17m-366-25-66 17m357 24 85 19m-365-8-78 22m202-83 12 3"/></g><path d="M135 274V56q0-18 16-18h24" fill="none" stroke="#111e2b" stroke-width="5"/><ellipse cx="177" cy="40" rx="15" ry="4" fill="#e9c08b"/><circle cx="177" cy="64" r="80" fill="url(#glow-${warm})"/><path d="M306 264h38l13 10v10h-60v-10z" fill="#182635"/><path d="m304 277 10 0m25 0h10" stroke="#ead0a5" stroke-width="3"/><g stroke="#bbd3df" stroke-opacity=".15"><path d="m255 23-4 31m52-42-5 32m66 6-4 32m-95 80-5 33m109-97-6 38m-135 56-4 34m192-130-5 32m31 110-4 31"/></g></svg><div class="art-label">RAIN, THEN QUIET</div></div><div class="art-caption">视觉示意插画 · 仅用于对话排版预览</div>`;}
+function addTurn(data,index){
+ const article=document.createElement('article');article.className='turn';article.id='turn-'+index;
+ const row=document.createElement('div');row.className='user-row';const user=document.createElement('div');user.className='user-message';user.textContent=data[0];row.append(user);
+ const answer=document.createElement('div');answer.className='assistant-message';const p=document.createElement('p');p.textContent=data[1];answer.append(p);
+ if(data[2]==='art'){const box=document.createElement('div');box.innerHTML=cityArt(index%2===0);answer.append(box);}
+ if(data[2]==='video'){const box=document.createElement('div');box.className='video-placeholder';box.textContent='视频展示位置 · 本预览不生成视频';answer.append(box);}
+ article.append(row,answer);messages.append(article);
+}
+turns.forEach(addTurn);
+let ribs=[],positions=[],widths=[],velocities=[],hoverY=null,selected=0,dragging=false,spacing=10,pad=12,frame=0,lastTime=0,demo=0,lastTip=-1,toastTimer,scrollQueued=false;
+const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+function rebuild(){
+ const available=Math.max(80,transcript.clientHeight-40);spacing=Math.min(10,(available-24)/Math.max(1,turns.length-1));
+ rail.style.height=(pad*2+spacing*(turns.length-1))+'px';rail.replaceChildren();
+ ribs=turns.map((_,i)=>{const line=document.createElement('span');line.className='rib';line.setAttribute('aria-hidden','true');line.style.top=(pad+i*spacing)+'px';rail.append(line);return line;});
+ widths=ribs.map(()=>6);velocities=ribs.map(()=>0);positions=turns.map((_,i)=>$("turn-"+i).offsetTop);rail.setAttribute('aria-valuemax',turns.length);updateScroll();animate();
+}
+function updateScroll(){
+ const y=transcript.scrollTop+50;let i=0;for(let j=0;j<positions.length;j++)if(positions[j]<=y)i=j;
+ if(transcript.scrollHeight-transcript.scrollTop-transcript.clientHeight<5)i=turns.length-1;
+ selected=i;ribs.forEach((r,j)=>r.classList.toggle('current',j===i));rail.setAttribute('aria-valuenow',i+1);rail.setAttribute('aria-valuetext',`第 ${i+1} 轮：${turns[i][0]}`);
+ $('back-latest').hidden=transcript.scrollHeight-transcript.scrollTop-transcript.clientHeight<70;
+}
+function tipFor(index,y){
+ if(index!==lastTip){$('tip-heading').textContent=`对话 ${String(index+1).padStart(2,'0')} / ${turns.length}`;$('tip-content').textContent=turns[index][0];$('tip-answer').textContent=turns[index][1];lastTip=index;}
+ tip.style.top=clamp(y,35,Math.max(35,rail.clientHeight-35))+'px';tip.classList.add('visible');
+}
+function setHover(y){hoverY=clamp(y,pad,pad+(turns.length-1)*spacing);const i=clamp(Math.round((hoverY-pad)/spacing),0,turns.length-1);tipFor(i,hoverY);$('rail-hint').classList.add('hidden');animate();return i;}
+function clearHover(){hoverY=null;tip.classList.remove('visible');animate();}
+function animate(){if(!frame)frame=requestAnimationFrame(tick);}
+function tick(time){
+ const dt=Math.min((time-lastTime)/1000||1/60,.025);lastTime=time;let moving=false;
+ for(let i=0;i<ribs.length;i++){
+  const distance=hoverY===null?Infinity:Math.abs(pad+i*spacing-hoverY)/spacing;
+  const influence=distance<4.5?(1+Math.cos(Math.PI*distance/4.5))/2:0;
+  const target=6+22*influence;
+  if(reduced.matches){widths[i]=target;velocities[i]=0;}else{velocities[i]+=(420*(target-widths[i])-31*velocities[i])*dt;widths[i]+=velocities[i]*dt;}
+  if(Math.abs(target-widths[i])>.025||Math.abs(velocities[i])>.025)moving=true;else{widths[i]=target;velocities[i]=0;}
+  ribs[i].style.width=widths[i].toFixed(2)+'px';
+  const color=hoverY===null?(i===selected?'#727b86':'#c9cdd1'):`rgb(${Math.round(201-108*influence)},${Math.round(205-103*influence)},${Math.round(209-98*influence)})`;
+  ribs[i].style.backgroundColor=color;
+ }
+ frame=moving?requestAnimationFrame(tick):0;
+}
+function jump(index,smooth=true){index=clamp(index,0,turns.length-1);const target=$('turn-'+index);transcript.scrollTo({top:positions[index]-26,behavior:smooth&&!reduced.matches?'smooth':'instant'});target.classList.remove('landing');void target.offsetWidth;target.classList.add('landing');}
+rail.addEventListener('pointerenter',e=>{cancelDemo();setHover(e.clientY-rail.getBoundingClientRect().top);});
+rail.addEventListener('pointermove',e=>{const i=setHover(e.clientY-rail.getBoundingClientRect().top);if(dragging)jump(i,false);});
+rail.addEventListener('pointerleave',()=>{if(!dragging)clearHover();});
+rail.addEventListener('pointerdown',e=>{if(e.button!==0)return;cancelDemo();dragging=true;rail.focus({preventScroll:true});rail.setPointerCapture(e.pointerId);jump(setHover(e.clientY-rail.getBoundingClientRect().top),false);e.preventDefault();});
+rail.addEventListener('pointerup',e=>{dragging=false;if(rail.hasPointerCapture(e.pointerId))rail.releasePointerCapture(e.pointerId);if(e.pointerType==='touch')clearHover();});
+rail.addEventListener('pointercancel',()=>{dragging=false;clearHover();});rail.addEventListener('lostpointercapture',()=>{dragging=false;});
+rail.addEventListener('focus',()=>{if(hoverY===null)setHover(pad+selected*spacing);});rail.addEventListener('blur',()=>{if(!dragging)clearHover();});
+rail.addEventListener('keydown',e=>{let next=selected;if(e.key==='ArrowDown')next++;else if(e.key==='ArrowUp')next--;else if(e.key==='Home')next=0;else if(e.key==='End')next=turns.length-1;else if(e.key==='PageDown')next+=3;else if(e.key==='PageUp')next-=3;else if(e.key==='Escape'){rail.blur();clearHover();return;}else return;e.preventDefault();next=clamp(next,0,turns.length-1);jump(next,false);setHover(pad+next*spacing);});
+transcript.addEventListener('scroll',()=>{if(scrollQueued)return;scrollQueued=true;requestAnimationFrame(()=>{scrollQueued=false;updateScroll();animate();});},{passive:true});
+rail.addEventListener('wheel',e=>{transcript.scrollTop+=e.deltaY;e.preventDefault();},{passive:false});
+$('back-latest').onclick=()=>transcript.scrollTo({top:transcript.scrollHeight,behavior:reduced.matches?'instant':'smooth'});
+$('toggle-sidebar').onclick=()=>{const mobile=innerWidth<=620;const side=$('sidebar');side.classList.toggle(mobile?'mobile-open':'collapsed');$('toggle-sidebar').setAttribute('aria-expanded',mobile?side.classList.contains('mobile-open'):!side.classList.contains('collapsed'));};
+transcript.addEventListener('pointerdown',()=>$('sidebar').classList.remove('mobile-open'));
+$('open-reference').onclick=()=>{cancelDemo();clearHover();$('reference-dialog').showModal();};$('close-reference').onclick=()=>$('reference-dialog').close();
+function cancelDemo(){if(demo)cancelAnimationFrame(demo);demo=0;$('demo-wave').textContent='演示波浪';}
+$('demo-wave').onclick=()=>{if(demo){cancelDemo();clearHover();return;}$('demo-wave').textContent='停止演示';const start=performance.now();const step=t=>{const elapsed=(t-start)/3000;if(elapsed>=1){cancelDemo();clearHover();return;}setHover(pad+(turns.length-1)*spacing*(.5-.46*Math.cos(elapsed*Math.PI*2)));demo=requestAnimationFrame(step);};demo=requestAnimationFrame(step);};
+function toast(message){$('toast').textContent=message;$('toast').hidden=false;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').hidden=true,2600);}
+$('new-creation').onclick=()=>toast('当前只对齐已有对话的侧边进度条，不清空记录。');document.querySelectorAll('.secondary').forEach(b=>b.onclick=()=>toast('此预览只展示对话页，精修工作区暂不打开。'));
+$('upload').onclick=()=>$('file').click();$('file').onchange=()=>{$('attachment').textContent=$('file').files[0]?.name||'';toast('仅显示本地文件名，不上传文件。');};
+$('prompt').oninput=()=>$('send').disabled=!$('prompt').value.trim();
+$('prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();if($('prompt').value.trim())$('composer').requestSubmit();}});
+$('composer').onsubmit=e=>{e.preventDefault();const text=$('prompt').value.trim();if(!text)return;turns.push([text,'这是一条预览消息，没有调用 AI。左侧已经增加一条横线，你可以回到之前的记录。']);addTurn(turns.at(-1),turns.length-1);$('prompt').value='';$('send').disabled=true;rebuild();transcript.scrollTop=transcript.scrollHeight;};
+new ResizeObserver(()=>{rebuild();}).observe(transcript);new ResizeObserver(()=>{positions=turns.map((_,i)=>$('turn-'+i).offsetTop);updateScroll();}).observe(messages);reduced.addEventListener('change',animate);
+rebuild();requestAnimationFrame(()=>{jump(8,false);updateScroll();});
+</script>
+</body>
+</html>

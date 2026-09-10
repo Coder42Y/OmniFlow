@@ -1,0 +1,25 @@
+[Unit]
+Description=OmniFlow API - REVIEW REQUIRED, NOT INSTALLED
+ConditionPathExists=/REVIEW_REQUIRED/omniflow-approved
+
+[Service]
+Type=simple
+User=omniflow-review-required
+Group=omniflow-review-required
+WorkingDirectory=/REVIEW_REQUIRED/worktree
+ExecStart=/REVIEW_REQUIRED/worktree/.venv/bin/python -m omniflow.cli serve --port 8765
+Environment=OMNIFLOW_DATA_DIR=/REVIEW_REQUIRED/data
+Environment=OMNIFLOW_PROVIDER_MODE=disabled
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/REVIEW_REQUIRED/data
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+KillMode=control-group
